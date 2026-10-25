@@ -171,11 +171,8 @@ h3 { font-size: 16px; line-height: 24px; font-weight: 700; }
 .b-grid { display: grid; grid-template-columns: minmax(0, 1fr) 392px; gap: 28px; align-items: start; }
 .b-main { display: flex; flex-direction: column; gap: 28px; min-width: 0; }
 .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
-.kpi { padding: 20px; display: flex; flex-direction: column; gap: 16px; position: relative; overflow: hidden; transition: transform .2s, box-shadow .2s; }
+.kpi { padding: 20px; display: flex; flex-direction: column; gap: 16px; transition: transform .2s, box-shadow .2s; }
 .kpi:hover { transform: translateY(-3px); box-shadow: var(--sh-lift); }
-.kpi::after { content: ""; position: absolute; right: -36px; top: -36px; width: 120px; height: 120px; border-radius: 50%; background: var(--kpi-tint); opacity: .7; pointer-events: none; }
-.kpi.g { --kpi-tint: var(--g-bg); } .kpi.o { --kpi-tint: var(--o-bg); } .kpi.r { --kpi-tint: var(--r-bg); } .kpi.b { --kpi-tint: var(--b-bg); }
-.kpi .ico { position: relative; z-index: 1; }
 .kpi-label { color: var(--text-2); font-weight: 500; min-height: 40px; }
 .kpi-value { font-size: 28px; line-height: 36px; font-weight: 800; letter-spacing: -0.01em; }
 .kpi-value small { font-size: 13px; font-weight: 600; color: var(--text-2); letter-spacing: 0; margin-left: 2px; }
