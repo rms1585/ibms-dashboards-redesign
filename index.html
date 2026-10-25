@@ -1,0 +1,911 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>html{color-scheme:light}body{margin:0}img{max-width:100%}</style>
+<meta charset="utf-8">
+<title>IBMS Dashboards</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: floating top bar, then a 2-column billing screen (content + sticky alerts) and a full-width operations screen.
+   Tokens are the Minimals set from the IBMS Figma file (Public Sans, Forest Green, Grey scale, tinted fills),
+   with the card shadow pushed up from z1 to a deep, soft drop so cards clearly float. */
+:root {
+  --font: 'Public Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --bg: #F4F5F7;
+  --glow: rgba(0, 143, 64, 0.09);
+  --surface: #FFFFFF;
+  --surface-2: #F4F5F7;
+  --surface-3: #EAECF0;
+  --line: #EAECF0;
+  --line-2: #DFE3E8;
+  --text: #2B3136;
+  --text-2: #677481;
+  --text-3: #919EAB;
+  --ink: #2B3136;
+  --on-ink: #FFFFFF;
+
+  --primary: #008F40;
+  --primary-d: #007A36;
+  --primary-dd: #006A2E;
+  --orange: #FFA70F;
+  --red: #FF3030;
+  --blue: #4166FB;
+
+  --g-bg: rgba(0, 143, 64, 0.10);
+  --g-bg2: rgba(0, 143, 64, 0.20);
+  --g-t: #00753A;
+  --o-bg: rgba(255, 167, 15, 0.14);
+  --o-bg2: rgba(255, 167, 15, 0.26);
+  --o-t: #945700;
+  --r-bg: rgba(255, 48, 48, 0.10);
+  --r-bg2: rgba(255, 48, 48, 0.18);
+  --r-t: #C80D0D;
+  --b-bg: rgba(65, 102, 251, 0.10);
+  --b-bg2: rgba(65, 102, 251, 0.20);
+  --b-t: #2A45C8;
+
+  --sh-card: 0 0 2px rgba(145, 158, 171, 0.32), 0 18px 36px -6px rgba(145, 158, 171, 0.34);
+  --sh-lift: 0 0 2px rgba(145, 158, 171, 0.36), 0 30px 56px -10px rgba(145, 158, 171, 0.50);
+  --sh-soft: 0 1px 2px rgba(145, 158, 171, 0.30), 0 6px 14px -4px rgba(145, 158, 171, 0.30);
+  --sh-nav: 0 0 2px rgba(145, 158, 171, 0.32), 0 16px 32px -8px rgba(145, 158, 171, 0.40);
+  --sh-primary: 0 12px 22px -6px rgba(0, 143, 64, 0.55);
+  --sh-ink: 0 12px 22px -6px rgba(43, 49, 54, 0.50);
+  --sh-g: 0 18px 30px -10px rgba(0, 143, 64, 0.48);
+  --sh-o: 0 18px 30px -10px rgba(232, 152, 14, 0.50);
+  --sh-r: 0 18px 30px -10px rgba(255, 48, 48, 0.42);
+  --sh-b: 0 18px 30px -10px rgba(65, 102, 251, 0.46);
+  --tip-bg: #2B3136;
+  --tip-fg: #FFFFFF;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141A21; --glow: rgba(0, 168, 80, 0.12);
+    --surface: #1C252E; --surface-2: #212B36; --surface-3: #2B3642;
+    --line: rgba(145, 158, 171, 0.16); --line-2: rgba(145, 158, 171, 0.30);
+    --text: #F4F6F8; --text-2: #A3AEBA; --text-3: #7C8894;
+    --ink: #F4F6F8; --on-ink: #1C252E;
+    --primary: #00A24A; --primary-d: #008F40; --primary-dd: #007A36;
+    --g-bg: rgba(0, 200, 90, 0.16); --g-bg2: rgba(0, 200, 90, 0.28); --g-t: #5BE49B;
+    --o-bg: rgba(255, 167, 15, 0.16); --o-bg2: rgba(255, 167, 15, 0.28); --o-t: #FFC95C;
+    --r-bg: rgba(255, 70, 70, 0.16); --r-bg2: rgba(255, 70, 70, 0.28); --r-t: #FF8E8E;
+    --b-bg: rgba(100, 130, 255, 0.18); --b-bg2: rgba(100, 130, 255, 0.30); --b-t: #9DB0FF;
+    --sh-card: 0 0 2px rgba(0, 0, 0, 0.55), 0 22px 44px -8px rgba(0, 0, 0, 0.60);
+    --sh-lift: 0 0 2px rgba(0, 0, 0, 0.60), 0 34px 60px -10px rgba(0, 0, 0, 0.75);
+    --sh-soft: 0 1px 2px rgba(0, 0, 0, 0.5), 0 8px 16px -4px rgba(0, 0, 0, 0.5);
+    --sh-nav: 0 0 2px rgba(0, 0, 0, 0.55), 0 18px 36px -8px rgba(0, 0, 0, 0.65);
+    --sh-ink: 0 12px 22px -6px rgba(0, 0, 0, 0.7);
+    --sh-g: 0 18px 30px -10px rgba(0, 0, 0, 0.7);
+    --sh-o: 0 18px 30px -10px rgba(0, 0, 0, 0.7);
+    --sh-r: 0 18px 30px -10px rgba(0, 0, 0, 0.7);
+    --sh-b: 0 18px 30px -10px rgba(0, 0, 0, 0.7);
+    --tip-bg: #F4F6F8; --tip-fg: #1C252E;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141A21; --glow: rgba(0, 168, 80, 0.12);
+  --surface: #1C252E; --surface-2: #212B36; --surface-3: #2B3642;
+  --line: rgba(145, 158, 171, 0.16); --line-2: rgba(145, 158, 171, 0.30);
+  --text: #F4F6F8; --text-2: #A3AEBA; --text-3: #7C8894;
+  --ink: #F4F6F8; --on-ink: #1C252E;
+  --primary: #00A24A; --primary-d: #008F40; --primary-dd: #007A36;
+  --g-bg: rgba(0, 200, 90, 0.16); --g-bg2: rgba(0, 200, 90, 0.28); --g-t: #5BE49B;
+  --o-bg: rgba(255, 167, 15, 0.16); --o-bg2: rgba(255, 167, 15, 0.28); --o-t: #FFC95C;
+  --r-bg: rgba(255, 70, 70, 0.16); --r-bg2: rgba(255, 70, 70, 0.28); --r-t: #FF8E8E;
+  --b-bg: rgba(100, 130, 255, 0.18); --b-bg2: rgba(100, 130, 255, 0.30); --b-t: #9DB0FF;
+  --sh-card: 0 0 2px rgba(0, 0, 0, 0.55), 0 22px 44px -8px rgba(0, 0, 0, 0.60);
+  --sh-lift: 0 0 2px rgba(0, 0, 0, 0.60), 0 34px 60px -10px rgba(0, 0, 0, 0.75);
+  --sh-soft: 0 1px 2px rgba(0, 0, 0, 0.5), 0 8px 16px -4px rgba(0, 0, 0, 0.5);
+  --sh-nav: 0 0 2px rgba(0, 0, 0, 0.55), 0 18px 36px -8px rgba(0, 0, 0, 0.65);
+  --sh-ink: 0 12px 22px -6px rgba(0, 0, 0, 0.7);
+  --sh-g: 0 18px 30px -10px rgba(0, 0, 0, 0.7);
+  --sh-o: 0 18px 30px -10px rgba(0, 0, 0, 0.7);
+  --sh-r: 0 18px 30px -10px rgba(0, 0, 0, 0.7);
+  --sh-b: 0 18px 30px -10px rgba(0, 0, 0, 0.7);
+  --tip-bg: #F4F6F8; --tip-fg: #1C252E;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background-color: var(--bg);
+  background-image: radial-gradient(60% 420px at 8% 0%, var(--glow), transparent 70%);
+  background-repeat: no-repeat;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 20px;
+  padding-block: 20px 104px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  -webkit-font-smoothing: antialiased;
+}
+.app { max-width: 1440px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+h1, h2, h3, p { margin: 0; }
+button, select, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+svg.i { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 6px; }
+.num { font-variant-numeric: tabular-nums; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* ---------- Top bar ---------- */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  background: var(--surface); border-radius: 22px; padding: 12px 16px 12px 14px; box-shadow: var(--sh-nav);
+}
+.tb-left, .tb-right { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.tb-right { justify-content: flex-end; }
+.icon-btn {
+  width: 44px; height: 44px; border-radius: 14px; border: 0; background: var(--surface-2); color: var(--text-2);
+  display: grid; place-items: center; position: relative; box-shadow: var(--sh-soft); transition: color .15s, transform .15s;
+}
+.icon-btn:hover { color: var(--primary); transform: translateY(-1px); }
+.logo { width: 44px; height: 44px; border-radius: 14px; background: linear-gradient(145deg, #1FBF6B, #007A36); color: #fff; display: grid; place-items: center; box-shadow: var(--sh-primary); }
+.logo svg { width: 24px; height: 24px; }
+.demo-chip { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--b-t); background: var(--b-bg); border-radius: 8px; padding: 5px 9px; white-space: nowrap; }
+.nav-pills { display: flex; gap: 8px; }
+.pill {
+  display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; border-radius: 999px; border: 0;
+  background: var(--surface-2); color: var(--text-2); font-weight: 600; box-shadow: var(--sh-soft); transition: color .15s, transform .15s;
+}
+.pill:hover { color: var(--text); transform: translateY(-1px); }
+.pill[aria-current="page"] { background: var(--ink); color: var(--on-ink); box-shadow: var(--sh-ink); }
+.bell .dot { position: absolute; top: -6px; right: -6px; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 999px; background: var(--red); color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; box-shadow: 0 6px 12px -2px rgba(255, 48, 48, .55); border: 2px solid var(--surface); }
+.user { display: flex; align-items: center; gap: 12px; padding: 6px 10px 6px 6px; border-radius: 16px; border: 0; background: transparent; text-align: left; }
+.user:hover { background: var(--surface-2); }
+.avatar { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: #fff; background: linear-gradient(145deg, #4166FB, #7B5CFA); box-shadow: 0 8px 16px -4px rgba(65, 102, 251, .55); }
+.user b { display: block; font-weight: 600; }
+.user small { display: block; color: var(--text-3); font-size: 12px; line-height: 16px; }
+
+/* ---------- Page head ---------- */
+.page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+h1 { font-size: 32px; line-height: 40px; font-weight: 800; letter-spacing: -0.01em; }
+.sub { color: var(--text-2); margin-top: 4px; }
+.search {
+  display: flex; align-items: center; gap: 10px; height: 52px; padding: 0 14px 0 16px; background: var(--surface); border-radius: 16px;
+  box-shadow: var(--sh-card); color: var(--text-3); border: 1px solid transparent; transition: border-color .15s;
+}
+.search:focus-within { border-color: var(--primary); color: var(--primary); }
+.search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--text); font-size: 15px; }
+.search input::placeholder { color: var(--text-3); }
+.search kbd { font: 600 11px var(--font); color: var(--text-3); background: var(--surface-2); border-radius: 6px; padding: 3px 6px; }
+.search-lg { width: min(100%, 440px); }
+.search-sm { height: 44px; border-radius: 12px; box-shadow: none; background: var(--surface-2); }
+
+/* ---------- Cards, chips, buttons ---------- */
+.card { background: var(--surface); border-radius: 24px; box-shadow: var(--sh-card); min-width: 0; }
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+h2 { font-size: 20px; line-height: 30px; font-weight: 700; }
+h3 { font-size: 16px; line-height: 24px; font-weight: 700; }
+.muted { color: var(--text-2); }
+.chip { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 8px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.chip.g { background: var(--g-bg); color: var(--g-t); }
+.chip.o { background: var(--o-bg); color: var(--o-t); }
+.chip.r { background: var(--r-bg); color: var(--r-t); }
+.chip.b { background: var(--b-bg); color: var(--b-t); }
+.chip.n { background: var(--surface-3); color: var(--text-2); }
+.chip .d { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--line-2);
+  background: var(--surface); color: var(--text); font-weight: 600; box-shadow: var(--sh-soft); transition: transform .15s, box-shadow .15s, border-color .15s; white-space: nowrap;
+}
+.btn:hover { transform: translateY(-1px); border-color: var(--text-3); }
+.btn svg.i { width: 18px; height: 18px; }
+.btn.sm { height: 34px; padding: 0 12px; border-radius: 10px; font-size: 13px; }
+.btn.soft { background: var(--g-bg); color: var(--g-t); border-color: transparent; box-shadow: none; }
+.btn.soft:hover { background: var(--primary-d); color: #fff; box-shadow: var(--sh-primary); border-color: transparent; }
+.btn.primary { background: var(--primary-d); color: #fff; border-color: transparent; box-shadow: var(--sh-primary); }
+.btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+.ico { width: 48px; height: 48px; border-radius: 16px; display: grid; place-items: center; flex: none; }
+.ico svg.i { width: 24px; height: 24px; }
+.ico.g { background: var(--g-bg); color: var(--g-t); } .ico.o { background: var(--o-bg); color: var(--o-t); }
+.ico.r { background: var(--r-bg); color: var(--r-t); } .ico.b { background: var(--b-bg); color: var(--b-t); }
+.ico.w { background: var(--surface); box-shadow: var(--sh-soft); }
+.ico.w.g { color: var(--g-t); } .ico.w.o { color: var(--o-t); } .ico.w.r { color: var(--r-t); } .ico.w.b { color: var(--b-t); }
+.tint { background-color: var(--surface); }
+.tint.g { background-image: linear-gradient(135deg, var(--g-bg2), var(--g-bg) 70%); box-shadow: var(--sh-g); }
+.tint.o { background-image: linear-gradient(135deg, var(--o-bg2), var(--o-bg) 70%); box-shadow: var(--sh-o); }
+.tint.r { background-image: linear-gradient(135deg, var(--r-bg2), var(--r-bg) 70%); box-shadow: var(--sh-r); }
+.tint.b { background-image: linear-gradient(135deg, var(--b-bg2), var(--b-bg) 70%); box-shadow: var(--sh-b); }
+
+/* ---------- Billing screen ---------- */
+.b-grid { display: grid; grid-template-columns: minmax(0, 1fr) 392px; gap: 28px; align-items: start; }
+.b-main { display: flex; flex-direction: column; gap: 28px; min-width: 0; }
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+.kpi { padding: 20px; display: flex; flex-direction: column; gap: 16px; position: relative; overflow: hidden; transition: transform .2s, box-shadow .2s; }
+.kpi:hover { transform: translateY(-3px); box-shadow: var(--sh-lift); }
+.kpi::after { content: ""; position: absolute; right: -36px; top: -36px; width: 120px; height: 120px; border-radius: 50%; background: var(--kpi-tint); opacity: .7; pointer-events: none; }
+.kpi.g { --kpi-tint: var(--g-bg); } .kpi.o { --kpi-tint: var(--o-bg); } .kpi.r { --kpi-tint: var(--r-bg); } .kpi.b { --kpi-tint: var(--b-bg); }
+.kpi .ico { position: relative; z-index: 1; }
+.kpi-label { color: var(--text-2); font-weight: 500; min-height: 40px; }
+.kpi-value { font-size: 28px; line-height: 36px; font-weight: 800; letter-spacing: -0.01em; }
+.kpi-value small { font-size: 13px; font-weight: 600; color: var(--text-2); letter-spacing: 0; margin-left: 2px; }
+.kpi-foot { font-size: 12px; line-height: 16px; color: var(--text-3); margin-top: -8px; }
+
+.billing { padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+.bills { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+.bill { border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 18px; transition: transform .2s; }
+.bill:hover { transform: translateY(-3px); }
+.bill-label { color: var(--text-2); font-weight: 500; }
+.bill-value { font-size: 24px; line-height: 32px; font-weight: 800; letter-spacing: -0.01em; }
+.bill-value small { font-size: 13px; font-weight: 600; color: var(--text-2); }
+
+.manifests { padding: 24px 0 0; overflow: hidden; }
+.mf-head { padding: 0 24px 16px; display: flex; flex-direction: column; gap: 16px; }
+.mf-tools { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.tabs { display: flex; gap: 4px; padding: 4px; background: var(--surface-2); border-radius: 14px; overflow-x: auto; max-width: 100%; }
+.tab {
+  display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border: 0; border-radius: 10px; background: transparent;
+  color: var(--text-2); font-weight: 600; white-space: nowrap; transition: background .15s, color .15s;
+}
+.tab:hover { color: var(--text); }
+.tab[aria-selected="true"] { background: var(--surface); color: var(--text); box-shadow: var(--sh-soft); }
+.tab .count { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 6px; background: var(--surface-3); color: var(--text-2); }
+.tab[data-tone="r"][aria-selected="true"] .count { background: var(--r-bg); color: var(--r-t); }
+.tab[data-tone="o"][aria-selected="true"] .count { background: var(--o-bg); color: var(--o-t); }
+.tab[data-tone="g"][aria-selected="true"] .count { background: var(--g-bg); color: var(--g-t); }
+.tab[data-tone="a"][aria-selected="true"] .count { background: var(--ink); color: var(--on-ink); }
+.mf-search { width: 260px; max-width: 100%; }
+.tbl-wrap { overflow: auto; border-top: 1px solid var(--line); }
+table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 760px; }
+th {
+  position: sticky; top: 0; z-index: 1; background: var(--surface-2); color: var(--text-2); font-weight: 600; font-size: 13px; text-align: left;
+  padding: 14px 16px; white-space: nowrap;
+}
+th:first-child, td:first-child { padding-left: 24px; }
+th:last-child, td:last-child { padding-right: 24px; text-align: right; }
+td { padding: 12px 16px; border-bottom: 1px dashed var(--line-2); height: 60px; }
+tbody tr { transition: background .12s; }
+tbody tr:hover { background: var(--surface-2); }
+tbody tr:last-child td { border-bottom: 0; }
+.mf-id { font-weight: 600; letter-spacing: .01em; }
+.veh { color: var(--text-2); }
+.empty-row td { text-align: center; color: var(--text-2); height: 160px; }
+.pager { display: flex; align-items: center; justify-content: flex-end; gap: 14px; padding: 12px 24px; border-top: 1px solid var(--line); color: var(--text-2); flex-wrap: wrap; }
+.pager .btn { width: 34px; padding: 0; }
+
+/* ---------- Alerts ---------- */
+.alerts { padding: 24px 20px 20px; display: flex; flex-direction: column; gap: 16px; position: sticky; top: 16px; max-height: calc(100vh - 32px); min-height: 520px; }
+.alerts-head { padding: 0 4px; display: flex; flex-direction: column; gap: 6px; }
+.alerts-head p { color: var(--text-2); }
+.count-badge { background: var(--r-bg); color: var(--r-t); font-size: 12px; font-weight: 700; border-radius: 8px; padding: 3px 8px; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.fchip { height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--surface); color: var(--text-2); font-weight: 600; font-size: 13px; transition: all .15s; }
+.fchip:hover { border-color: var(--text-3); color: var(--text); }
+.fchip[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); border-color: transparent; box-shadow: var(--sh-ink); }
+.alert-list { display: flex; flex-direction: column; gap: 14px; overflow-y: auto; padding: 6px 6px 14px; margin: 0 -6px; list-style: none; min-height: 0; flex: 1; }
+.alert { display: flex; gap: 14px; padding: 16px; border-radius: 18px; background: var(--surface); box-shadow: var(--sh-soft); border: 1px solid var(--line); transition: transform .2s, box-shadow .2s; cursor: pointer; text-align: left; width: 100%; }
+.alert:hover { transform: translateY(-2px); box-shadow: var(--sh-card); }
+.alert .ico { width: 40px; height: 40px; border-radius: 14px; }
+.alert .ico svg.i { width: 20px; height: 20px; }
+.alert-body { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.alert-title { font-weight: 700; }
+.alert-text { color: var(--text-2); }
+.alert-meta { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; line-height: 16px; color: var(--text-3); flex-wrap: wrap; }
+.alert-empty { color: var(--text-2); text-align: center; padding: 40px 12px; }
+
+/* ---------- Operations screen ---------- */
+.filters { display: flex; gap: 12px; flex-wrap: wrap; }
+.select { position: relative; display: block; min-width: 168px; }
+.select span { position: absolute; left: 12px; top: -8px; padding: 0 6px; background: var(--bg); font-size: 11px; font-weight: 600; color: var(--text-2); z-index: 1; border-radius: 4px; }
+.select select { appearance: none; width: 100%; height: 52px; padding: 0 40px 0 16px; border-radius: 14px; border: 1px solid var(--line-2); background: var(--surface); box-shadow: var(--sh-soft); font-weight: 500; }
+.select select:hover { border-color: var(--text-3); }
+.select svg.i { position: absolute; right: 12px; top: 16px; pointer-events: none; color: var(--text-2); width: 20px; height: 20px; }
+.op-tabs { display: flex; gap: 28px; border-bottom: 1px solid var(--line-2); overflow-x: auto; }
+.op-tab { position: relative; border: 0; background: transparent; height: 48px; padding: 0 2px; color: var(--text-2); font-weight: 600; font-size: 15px; white-space: nowrap; }
+.op-tab:hover { color: var(--text); }
+.op-tab[aria-selected="true"] { color: var(--text); font-weight: 700; }
+.op-tab[aria-selected="true"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--primary); box-shadow: 0 -4px 12px rgba(0, 143, 64, .5); }
+.op-stack { display: flex; flex-direction: column; gap: 28px; }
+.section { padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+.widgets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.widget { border-radius: 22px; padding: 22px 24px; display: flex; flex-direction: column; gap: 14px; transition: transform .2s; }
+.widget:hover { transform: translateY(-3px); }
+.w-top { display: flex; align-items: center; gap: 14px; }
+.w-label { font-weight: 600; font-size: 15px; }
+.w-value { font-size: 52px; line-height: 56px; font-weight: 800; letter-spacing: -0.02em; }
+.cmp { list-style: none; margin: 0; padding: 14px 0 0; border-top: 1px dashed var(--line-2); display: flex; flex-direction: column; gap: 10px; }
+.cmp li { display: grid; grid-template-columns: 1fr auto 64px; gap: 10px; align-items: center; color: var(--text-2); }
+.cmp em { font-style: normal; text-align: right; font-weight: 600; color: var(--text); }
+.live { display: inline-flex; align-items: center; gap: 8px; }
+.live i { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 0 0 rgba(0, 143, 64, .6); animation: pulse 1.8s infinite; }
+@keyframes pulse { 70% { box-shadow: 0 0 0 8px rgba(0, 143, 64, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 143, 64, 0); } }
+.tiles { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 16px; }
+.tile { padding: 18px; border-radius: 20px; background: var(--surface); box-shadow: var(--sh-card); display: flex; flex-direction: column; gap: 14px; transition: transform .2s, box-shadow .2s; }
+.tile:hover { transform: translateY(-3px); box-shadow: var(--sh-lift); }
+.tile .ico { width: 44px; height: 44px; border-radius: 14px; }
+.tile-label { color: var(--text-2); font-weight: 500; min-height: 40px; }
+.tile-value { font-size: 36px; line-height: 44px; font-weight: 800; letter-spacing: -0.02em; }
+.tile-value small { font-size: 14px; font-weight: 600; color: var(--text-2); letter-spacing: 0; margin-left: 4px; }
+.tile.alert-tile { background-color: var(--surface); background-image: linear-gradient(135deg, var(--o-bg2), var(--o-bg)); box-shadow: var(--sh-o); }
+.charts { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 28px; }
+.chart-card { padding: 24px; display: flex; flex-direction: column; gap: 16px; grid-column: span 6; }
+.chart-card.wide { grid-column: span 8; }
+.chart-card.narrow { grid-column: span 4; }
+.chart-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.chart-top p { color: var(--text-2); margin-top: 2px; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; color: var(--text-2); font-size: 13px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 10px; height: 10px; border-radius: 4px; }
+.plot { position: relative; width: 100%; }
+.plot svg { display: block; overflow: visible; }
+.ax { fill: var(--text-3); font: 500 12px var(--font); }
+.grid { stroke: var(--line-2); stroke-dasharray: 3 5; }
+.bar { transition: opacity .15s; }
+.plot:hover .bar { opacity: .55; }
+.plot .bar:hover { opacity: 1; }
+.tab-empty { padding: 72px 24px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; color: var(--text-2); }
+.tab-empty .ico { width: 64px; height: 64px; border-radius: 20px; }
+.tab-empty .ico svg.i { width: 30px; height: 30px; }
+
+/* ---------- Floating screen switch + tooltip ---------- */
+.switch {
+  position: fixed; left: 50%; transform: translateX(-50%); z-index: 20;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px)); display: flex; gap: 4px; padding: 6px; border-radius: 999px;
+  background: var(--surface); box-shadow: 0 0 2px rgba(145, 158, 171, .5), 0 24px 48px -8px rgba(43, 49, 54, .45); max-width: calc(100vw - 32px);
+}
+.switch a { display: inline-flex; align-items: center; height: 40px; padding: 0 18px; border-radius: 999px; color: var(--text-2); font-weight: 600; text-decoration: none; white-space: nowrap; }
+.switch a:hover { color: var(--text); }
+.switch a[aria-current="page"] { background: var(--primary-d); color: #fff; box-shadow: var(--sh-primary); }
+.tip { position: fixed; z-index: 30; pointer-events: none; background: var(--tip-bg); color: var(--tip-fg); border-radius: 10px; padding: 8px 12px; font-size: 12px; line-height: 16px; font-weight: 600; box-shadow: 0 16px 32px -8px rgba(0, 0, 0, .4); opacity: 0; transition: opacity .1s; max-width: 220px; }
+.tip.on { opacity: 1; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1280px) {
+  .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .bills, .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 1100px) {
+  .b-grid { grid-template-columns: minmax(0, 1fr); }
+  .alerts { position: static; max-height: 640px; }
+  .chart-card, .chart-card.wide, .chart-card.narrow { grid-column: span 12; }
+  .widgets { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 900px) {
+  .pill .lbl, .user .who { display: none; }
+  .pill { padding: 0; width: 44px; justify-content: center; }
+  .demo-chip { display: none; }
+}
+@media (max-width: 640px) {
+  h1 { font-size: 26px; line-height: 34px; }
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bills, .kpis { grid-template-columns: minmax(0, 1fr); }
+  .section, .billing, .chart-card { padding: 18px; }
+  .cmp li { grid-template-columns: 1fr auto; }
+  .cmp em { display: none; }
+  .select { flex: 1; min-width: 140px; }
+  .topbar { padding: 10px; }
+  .w-value { font-size: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+[hidden] { display: none !important; }
+</style>
+
+<!-- Icon sprite -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1.6"/><rect x="14" y="4" width="6" height="6" rx="1.6"/><rect x="4" y="14" width="6" height="6" rx="1.6"/><rect x="14" y="14" width="6" height="6" rx="1.6"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10.3 20a2 2 0 0 0 3.4 0"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+    <symbol id="i-truck" viewBox="0 0 24 24"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M4 7a2 2 0 0 1 2-2h12v4"/><path d="M4 7v10a2 2 0 0 0 2 2h14V9H6a2 2 0 0 1-2-2z"/><path d="M16 14h.01"/></symbol>
+    <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 4 2.6 17.5A2 2 0 0 0 4.3 20.5h15.4a2 2 0 0 0 1.7-3L13.7 4a2 2 0 0 0-3.4 0z"/><path d="M12 9.5v4M12 17h.01"/></symbol>
+    <symbol id="i-bell-ok" viewBox="0 0 24 24"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10.3 20a2 2 0 0 0 3.4 0"/><path d="m9.5 9.5 1.8 1.8 3.2-3.4"/></symbol>
+    <symbol id="i-chev-d" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-chev-r" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="i-chev-l" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 11 5 5 5-5"/><path d="M5 20h14"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2.5"/><path d="m16 10.5 5-3v9l-5-3z"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol>
+    <symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5"/><path d="M12 13v8"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="M12 8v5M12 16h.01"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2.5"/><path d="M4 10h16M8 3v4M16 3v4"/></symbol>
+    <symbol id="i-ticket" viewBox="0 0 24 24"><path d="M3 9V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 6v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-6z"/><path d="M13 6v2M13 11v2M13 16v2"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.6 0l3-3a4 4 0 0 0-5.6-5.6l-1 1"/><path d="M14 10a4 4 0 0 0-5.6 0l-3 3a4 4 0 0 0 5.6 5.6l1-1"/></symbol>
+    <symbol id="i-route" viewBox="0 0 24 24"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6"/></symbol>
+    <symbol id="i-gate" viewBox="0 0 24 24"><path d="M5 21V4M19 21V4M5 9h14M5 15h14"/><path d="m5 15 14-6"/></symbol>
+    <symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M6 3h12M6 21h12"/><path d="M7 3v4l5 5-5 5v4M17 3v4l-5 5 5 5v4"/></symbol>
+    <symbol id="i-in" viewBox="0 0 24 24"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><circle cx="7" cy="18" r="2"/><path d="M16 12h6m-3-3 3 3-3 3"/></symbol>
+    <symbol id="i-out" viewBox="0 0 24 24"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><circle cx="7" cy="18" r="2"/><path d="M22 12h-6m3-3-3 3 3 3"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+  </defs>
+</svg>
+
+<div class="app">
+  <!-- Shared top bar -->
+  <header class="topbar">
+    <div class="tb-left">
+      <button class="icon-btn" aria-label="Open app menu" type="button"><svg class="i"><use href="#i-grid"/></svg></button>
+      <div class="logo" aria-hidden="true"><svg class="i" style="width:24px;height:24px"><use href="#i-truck"/></svg></div>
+      <span class="demo-chip">Demo version</span>
+    </div>
+    <nav class="nav-pills" aria-label="Primary">
+      <button class="pill" type="button" aria-current="page"><svg class="i"><use href="#i-home"/></svg><span class="lbl">Dashboard</span></button>
+      <button class="pill" type="button"><svg class="i"><use href="#i-doc"/></svg><span class="lbl">Manifest History</span></button>
+      <button class="pill" type="button"><svg class="i"><use href="#i-camera"/></svg><span class="lbl">Live Cameras</span></button>
+    </nav>
+    <div class="tb-right">
+      <button class="icon-btn bell" type="button" aria-label="Notifications, 13 unread"><svg class="i"><use href="#i-bell"/></svg><span class="dot">13</span></button>
+      <button class="user" type="button" aria-label="Account menu">
+        <span class="avatar" aria-hidden="true">AR</span>
+        <span class="who"><b>Arifur Rahman</b><small>Weighbridge</small></span>
+        <svg class="i" style="width:18px;height:18px;color:var(--text-3)"><use href="#i-chev-d"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ================= SCREEN 1: Billing dashboard ================= -->
+  <main id="screen-billing" class="screen" aria-labelledby="h-billing">
+    <div style="display:flex;flex-direction:column;gap:28px">
+      <div class="page-head">
+        <div>
+          <h1 id="h-billing">Dashboard</h1>
+          <p class="sub">Today at a glance: 16 July, 2026</p>
+        </div>
+        <label class="search search-lg">
+          <svg class="i"><use href="#i-search"/></svg>
+          <span class="sr">Search manifests and vehicles</span>
+          <input id="global-search" type="search" placeholder="Manifest number, vehicle number" autocomplete="off">
+          <kbd>⌘K</kbd>
+        </label>
+      </div>
+
+      <div class="b-grid">
+        <div class="b-main">
+          <section class="kpis" aria-label="Key figures">
+            <article class="card kpi b">
+              <span class="ico b"><svg class="i"><use href="#i-wallet"/></svg></span>
+              <p class="kpi-label">Total dues across 30 active manifests</p>
+              <p class="kpi-value num">64,309.00 <small>BDT</small></p>
+            </article>
+            <article class="card kpi g">
+              <span class="ico g"><svg class="i"><use href="#i-doc"/></svg></span>
+              <p class="kpi-label">Active manifests</p>
+              <p class="kpi-value num">100</p>
+            </article>
+            <article class="card kpi r">
+              <span class="ico r"><svg class="i"><use href="#i-truck"/></svg></span>
+              <p class="kpi-label">Trucks in port</p>
+              <p class="kpi-value num">36</p>
+            </article>
+            <article class="card kpi o">
+              <span class="ico o"><svg class="i"><use href="#i-bell-ok"/></svg></span>
+              <p class="kpi-label">Unread alerts</p>
+              <p class="kpi-value num">0</p>
+              <p class="kpi-foot">You are all caught up</p>
+            </article>
+          </section>
+
+          <section class="card billing" aria-labelledby="h-bill">
+            <div class="card-head">
+              <h2 id="h-bill">Billing summary</h2>
+              <button class="btn sm" type="button"><svg class="i"><use href="#i-receipt"/></svg>View all bills</button>
+            </div>
+            <div class="bills">
+              <article class="bill tint g">
+                <span class="ico w g"><svg class="i"><use href="#i-wallet"/></svg></span>
+                <div><p class="bill-label">Total billed</p><p class="bill-value num">1,24,500 <small>BDT</small></p></div>
+              </article>
+              <article class="bill tint o">
+                <span class="ico w o"><svg class="i"><use href="#i-clock"/></svg></span>
+                <div><p class="bill-label">Total payment dues</p><p class="bill-value num">50,000 <small>BDT</small></p></div>
+              </article>
+              <article class="bill tint b">
+                <span class="ico w b"><svg class="i"><use href="#i-check"/></svg></span>
+                <div><p class="bill-label">Paid amount</p><p class="bill-value num">6,32,900 <small>BDT</small></p></div>
+              </article>
+              <article class="bill tint r">
+                <span class="ico w r"><svg class="i"><use href="#i-calendar"/></svg></span>
+                <div><p class="bill-label">Overdue amount</p><p class="bill-value num">80,000 <small>BDT</small></p></div>
+              </article>
+            </div>
+          </section>
+
+          <section class="card manifests" aria-labelledby="h-mf">
+            <div class="mf-head">
+              <div class="card-head">
+                <h2 id="h-mf">Manifest list</h2>
+                <button class="btn sm" type="button"><svg class="i"><use href="#i-download"/></svg>Export</button>
+              </div>
+              <div class="mf-tools">
+                <div class="tabs" role="tablist" aria-label="Filter manifests by customs status" id="mf-tabs"></div>
+                <label class="search search-sm mf-search">
+                  <svg class="i" style="width:18px;height:18px"><use href="#i-search"/></svg>
+                  <span class="sr">Filter manifest numbers</span>
+                  <input id="mf-search" type="search" placeholder="Filter by manifest no." autocomplete="off">
+                </label>
+              </div>
+            </div>
+            <div class="tbl-wrap">
+              <table>
+                <thead><tr><th scope="col">Manifest no.</th><th scope="col">Indian vehicles</th><th scope="col">BD vehicles</th><th scope="col">Customs status</th><th scope="col">Land port bills</th><th scope="col">Action</th></tr></thead>
+                <tbody id="mf-body"></tbody>
+              </table>
+            </div>
+            <div class="pager">
+              <span id="pager-info" class="num">1–10 of 100</span>
+              <button class="btn sm" id="pg-prev" type="button" aria-label="Previous page"><svg class="i"><use href="#i-chev-l"/></svg></button>
+              <button class="btn sm" id="pg-next" type="button" aria-label="Next page"><svg class="i"><use href="#i-chev-r"/></svg></button>
+            </div>
+          </section>
+        </div>
+
+        <aside class="card alerts" aria-labelledby="h-alerts">
+          <div class="alerts-head">
+            <div class="card-head"><h2 id="h-alerts">Alerts</h2><span class="count-badge num" id="alert-count">60</span></div>
+            <p>Decisions about your trucks, newest first. Open one to jump to its manifest.</p>
+          </div>
+          <label class="search search-sm">
+            <svg class="i" style="width:18px;height:18px"><use href="#i-search"/></svg>
+            <span class="sr">Search alerts</span>
+            <input id="alert-search" type="search" placeholder="Manifest or vehicle number" autocomplete="off">
+          </label>
+          <div class="chips" id="alert-chips" role="group" aria-label="Filter alerts"></div>
+          <ul class="alert-list" id="alert-list"></ul>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <!-- ================= SCREEN 2: Operations dashboard ================= -->
+  <main id="screen-operations" class="screen" aria-labelledby="h-ops" hidden>
+    <div class="op-stack">
+      <div class="page-head">
+        <div>
+          <h1 id="h-ops">Dashboard</h1>
+          <p class="sub num" id="ops-sub">2026-09-28 to 2026-10-04 · 7 days · Benapole</p>
+        </div>
+        <div class="filters">
+          <label class="select"><span>Port</span>
+            <select id="sel-port"><option>Benapole</option><option>All ports</option></select>
+            <svg class="i"><use href="#i-chev-d"/></svg>
+          </label>
+          <label class="select"><span>Duration</span>
+            <select id="sel-duration"><option value="7">7 days</option><option value="30">30 days</option><option value="90">90 days</option></select>
+            <svg class="i"><use href="#i-chev-d"/></svg>
+          </label>
+        </div>
+      </div>
+
+      <div class="op-tabs" role="tablist" aria-label="Dashboard sections" id="op-tabs"></div>
+
+      <div id="op-panel-operations" class="op-stack" role="tabpanel">
+        <section class="card section" aria-labelledby="h-today">
+          <div class="card-head"><h2 id="h-today">Over today</h2>
+            <button class="btn" type="button"><svg class="i"><use href="#i-download"/></svg>Export comparison</button></div>
+          <div class="widgets">
+            <article class="widget tint g">
+              <div class="w-top"><span class="ico w g"><svg class="i"><use href="#i-in"/></svg></span><p class="w-label">Trucks admitted</p></div>
+              <p class="w-value num">59</p>
+              <ul class="cmp">
+                <li><span>vs the period before</span><span class="chip r">▼ −33.7%</span><em class="num">was 89</em></li>
+                <li><span>vs the same period last year</span><span class="chip r">▼ −25.3%</span><em class="num">was 79</em></li>
+              </ul>
+            </article>
+            <article class="widget tint o">
+              <div class="w-top"><span class="ico w o"><svg class="i"><use href="#i-out"/></svg></span><p class="w-label">Trucks that left</p></div>
+              <p class="w-value num">26</p>
+              <ul class="cmp">
+                <li><span>vs the period before</span><span class="chip r">▼ −74.3%</span><em class="num">was 101</em></li>
+                <li><span>vs the same period last year</span><span class="chip r">▼ −67.5%</span><em class="num">was 80</em></li>
+              </ul>
+            </article>
+            <article class="widget tint b">
+              <div class="w-top"><span class="ico w b"><svg class="i"><use href="#i-shield"/></svg></span><p class="w-label">Customs holds</p></div>
+              <p class="w-value num">0</p>
+              <ul class="cmp">
+                <li><span>vs the period before</span><span class="chip n">No data</span><em class="num">was 0</em></li>
+                <li><span>vs the same period last year</span><span class="chip n">No data</span><em class="num">was 0</em></li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section class="card section" aria-labelledby="h-ov">
+          <div class="card-head"><h2 id="h-ov">Overviews</h2>
+            <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+              <span class="chip g live"><i></i>Live records</span>
+              <button class="btn" type="button"><svg class="i"><use href="#i-download"/></svg>Export these tiles</button>
+            </div></div>
+          <div class="tiles">
+            <article class="tile"><span class="ico g"><svg class="i"><use href="#i-truck"/></svg></span><p class="tile-label">Trucks in port now</p><p class="tile-value num">36</p></article>
+            <article class="tile"><span class="ico b"><svg class="i"><use href="#i-calendar"/></svg></span><p class="tile-label">Expected arrivals today</p><p class="tile-value num">5</p></article>
+            <article class="tile alert-tile"><span class="ico w o"><svg class="i"><use href="#i-hourglass"/></svg></span><p class="tile-label">Oldest wait at a checkpoint</p><p class="tile-value num">143<small>h 47 min</small></p></article>
+            <article class="tile"><span class="ico r"><svg class="i"><use href="#i-shield"/></svg></span><p class="tile-label">Open holds</p><p class="tile-value num">0</p></article>
+            <article class="tile"><span class="ico g"><svg class="i"><use href="#i-ticket"/></svg></span><p class="tile-label">Trucks loaded, waiting for a pass</p><p class="tile-value num">1</p></article>
+            <article class="tile"><span class="ico o"><svg class="i"><use href="#i-link"/></svg></span><p class="tile-label">Admitted without manifest, still unlinked</p><p class="tile-value num">1</p></article>
+          </div>
+        </section>
+
+        <div class="charts">
+          <section class="card chart-card" aria-labelledby="h-c1">
+            <div class="chart-top">
+              <div><h3 id="h-c1">Trucks inside, by port</h3><p>Admitted and not yet left, right now</p></div>
+              <div class="legend"><span><i style="background:var(--primary)"></i>Foreign (import)</span><span><i style="background:var(--blue)"></i>Export</span><span><i style="background:var(--orange)"></i>Local</span></div>
+            </div>
+            <div class="plot" id="chart-port" data-label="Trucks inside Benapole port: 17 foreign import, 3 export, 16 local"></div>
+          </section>
+          <section class="card chart-card" aria-labelledby="h-c2">
+            <div class="chart-top">
+              <div><h3 id="h-c2">Money on open bills, by port</h3><p>BDT, right now. Counted = cash, online and cleared cheques</p></div>
+              <div class="legend"><span><i style="background:var(--blue)"></i>Billed</span><span><i style="background:var(--primary)"></i>Counted</span><span><i style="background:var(--red)"></i>Owed now</span></div>
+            </div>
+            <div class="plot" id="chart-money" data-label="Money on open bills at Benapole: billed 1.30 million, counted 1.24 million, owed 70 thousand BDT"></div>
+          </section>
+          <section class="card chart-card wide" aria-labelledby="h-c3">
+            <div class="chart-top">
+              <div><h3 id="h-c3">Trucks admitted, month by month</h3><p>24 months to 2026-09-28</p></div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <label class="select" style="min-width:176px"><span>Metric</span>
+                  <select id="sel-metric" style="height:40px;border-radius:12px"><option>Trucks admitted</option></select>
+                  <svg class="i" style="top:10px"><use href="#i-chev-d"/></svg></label>
+                <button class="btn" type="button"><svg class="i"><use href="#i-download"/></svg>Export months</button>
+              </div>
+            </div>
+            <div class="plot" id="chart-months" data-label="Line chart of trucks admitted each month from September 2024 to September 2026, levelling around 35 to 40 trucks a month"></div>
+          </section>
+          <section class="card chart-card narrow" aria-labelledby="h-c4">
+            <div class="chart-top">
+              <div><h3 id="h-c4">By year</h3><p>Whole calendar years, same figure</p></div>
+              <button class="btn" type="button"><svg class="i"><use href="#i-download"/></svg>Export years</button>
+            </div>
+            <div class="plot" id="chart-years" data-label="Trucks admitted per year: about 1,100 in 2024 (4 months), 3,900 in 2025, 3,050 in 2026 (9 months)"></div>
+          </section>
+        </div>
+      </div>
+
+      <section id="op-panel-other" class="card tab-empty" role="tabpanel" hidden>
+        <span class="ico g"><svg class="i"><use href="#i-chart"/></svg></span>
+        <h2 id="other-title">Performance</h2>
+        <p>This view is not part of the redesign. The Operations tab shows the full layout.</p>
+      </section>
+    </div>
+  </main>
+</div>
+
+<nav class="switch" aria-label="Choose screen">
+  <a href="#billing" id="sw-billing" aria-current="page">Screen 1 · Billing</a>
+  <a href="#operations" id="sw-operations">Screen 2 · Operations</a>
+</nav>
+<div class="tip" id="tip" role="presentation"></div>
+
+<script>
+(function () {
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var icon = function (id) { return '<svg class="i"><use href="#' + id + '"/></svg>'; };
+
+  /* ---------- Screen switch ---------- */
+  var screens = { billing: $('#screen-billing'), operations: $('#screen-operations') };
+  function showScreen() {
+    var key = location.hash === '#operations' ? 'operations' : 'billing';
+    Object.keys(screens).forEach(function (k) {
+      screens[k].hidden = k !== key;
+      var link = $('#sw-' + k);
+      if (k === key) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
+    });
+    window.scrollTo(0, 0);
+    requestAnimationFrame(drawCharts);
+  }
+  window.addEventListener('hashchange', showScreen);
+
+  /* ---------- Manifest table ---------- */
+  var patterns = [
+    ['-', '-', 'Not Paid', 'Not Paid'], ['-', '-', 'Not Paid', 'Not Paid'], ['-', '-', 'Not Paid', 'Not Paid'], ['-', '-', 'Not Paid', 'Not Paid'],
+    ['5', '6', 'Pending', 'Paid, Not Exit'], ['2', '3', 'Pending', 'Pending'], ['4', '6', 'Paid', 'Fully Paid'], ['1', '3', 'Paid', 'Paid, Not Exit'],
+    ['5', '5', 'Paid', 'Paid, Not Exit'], ['3', '7', 'Pending', 'Pending'], ['3', '4', 'Pending', 'Fully Paid'], ['2', '2', 'Paid', 'Fully Paid']
+  ];
+  var rows = [];
+  for (var i = 0; i < 100; i++) {
+    var p = patterns[i % patterns.length];
+    rows.push({ id: 'MNF-00078-' + String(988 - i).padStart(4, '0'), ind: p[0], bd: p[1], customs: p[2], bills: p[3] });
+  }
+  var tone = { 'Not Paid': 'r', 'Pending': 'o', 'Paid': 'g', 'Paid, Not Exit': 'r', 'Fully Paid': 'g' };
+  var tabsDef = [['all', 'All', 'a'], ['Not Paid', 'Not paid', 'r'], ['Pending', 'Pending', 'o'], ['Paid', 'Paid', 'g']];
+  var state = { tab: 'all', q: '', page: 0, size: 10 };
+
+  function filtered() {
+    return rows.filter(function (r) {
+      return (state.tab === 'all' || r.customs === state.tab) && r.id.toLowerCase().indexOf(state.q.toLowerCase()) > -1;
+    });
+  }
+  function chipHtml(label) { return '<span class="chip ' + tone[label] + '"><span class="d"></span>' + label + '</span>'; }
+  function renderTabs() {
+    $('#mf-tabs').innerHTML = tabsDef.map(function (t) {
+      var n = t[0] === 'all' ? rows.length : rows.filter(function (r) { return r.customs === t[0]; }).length;
+      return '<button class="tab" role="tab" type="button" data-key="' + t[0] + '" data-tone="' + t[2] + '" aria-selected="' + (state.tab === t[0]) + '">' + t[1] + '<span class="count num">' + n + '</span></button>';
+    }).join('');
+  }
+  function renderTable() {
+    var list = filtered(), pages = Math.max(1, Math.ceil(list.length / state.size));
+    if (state.page >= pages) state.page = pages - 1;
+    var start = state.page * state.size, slice = list.slice(start, start + state.size);
+    $('#mf-body').innerHTML = slice.length ? slice.map(function (r) {
+      return '<tr><td class="mf-id num">' + r.id + '</td><td class="veh num">' + r.ind + '</td><td class="veh num">' + r.bd + '</td><td>' + chipHtml(r.customs) + '</td><td>' + chipHtml(r.bills) +
+        '</td><td><button class="btn soft sm" type="button" aria-label="View details for ' + r.id + '">View details' + icon('i-chev-r') + '</button></td></tr>';
+    }).join('') : '<tr class="empty-row"><td colspan="6">No manifests match this filter. Clear the search or pick another status.</td></tr>';
+    $('#pager-info').textContent = list.length ? (start + 1) + '–' + (start + slice.length) + ' of ' + list.length : '0 of 0';
+    $('#pg-prev').disabled = state.page === 0;
+    $('#pg-next').disabled = state.page >= pages - 1;
+  }
+  $('#mf-tabs').addEventListener('click', function (e) {
+    var b = e.target.closest('.tab'); if (!b) return;
+    state.tab = b.dataset.key; state.page = 0; renderTabs(); renderTable();
+  });
+  function setQuery(v) { state.q = v; state.page = 0; renderTable(); }
+  $('#mf-search').addEventListener('input', function (e) { $('#global-search').value = e.target.value; setQuery(e.target.value); });
+  $('#global-search').addEventListener('input', function (e) { $('#mf-search').value = e.target.value; setQuery(e.target.value); });
+  $('#pg-prev').addEventListener('click', function () { state.page--; renderTable(); });
+  $('#pg-next').addEventListener('click', function () { state.page++; renderTable(); });
+  document.addEventListener('keydown', function (e) {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k' && !screens.billing.hidden) { e.preventDefault(); $('#global-search').focus(); }
+  });
+
+  /* ---------- Alerts ---------- */
+  var alerts = [
+    { type: 'pay', tone: 'g', ic: 'i-check', title: 'Payment confirmed', text: 'Nusrat Jahan paid BDT 500.00 on bill BEN-BILL-000220 online by mobile banking (gateway ref PG-00141); confirmed by the gateway', ref: 'IGM-2026-00413', time: '2026-09-28 · 17:32' },
+    { type: 'gate', tone: 'o', ic: 'i-gate', title: 'Admitted at the border gate, no manifest yet', text: 'Md. Rafiqul Islam admitted truck WB-19-F-8812 at Border gate 1 (zero line), Lane 1 WITHOUT manifest (declared cargo APPLE); sent to management review', ref: 'WB-19-F-8812', time: '2026-09-28 · 17:32' },
+    { type: 'gate', tone: 'b', ic: 'i-gate', title: 'Admitted at the inland gate', text: 'Md. Rafiqul Islam admitted export truck JSR-14-T-5521 at Inland gate (Jashore road), Lane 1', ref: 'EXP-2026-00077 · JSR-14-T-5521', time: '2026-09-28 · 17:32' },
+    { type: 'route', tone: 'g', ic: 'i-route', title: 'Routed', text: 'Truck TR-05-B-3310 routed: Industrial solvent to warehouse', ref: 'IGM-2026-00413 · TR-05-B-3310', time: '2026-09-28 · 17:32' },
+    { type: 'pay', tone: 'g', ic: 'i-check', title: 'Payment confirmed', text: 'Farhana Akter paid BDT 1,250.00 on bill BEN-BILL-000219 in cash at counter 2; receipt issued', ref: 'IGM-2026-00412', time: '2026-09-28 · 16:58' },
+    { type: 'route', tone: 'g', ic: 'i-route', title: 'Routed', text: 'Truck DM-11-A-2047 routed: Textile rolls to bonded warehouse 3', ref: 'IGM-2026-00411 · DM-11-A-2047', time: '2026-09-28 · 16:41' }
+  ];
+  var af = { cat: 'all', q: '' };
+  var cats = [['all', 'All'], ['pay', 'Payments'], ['gate', 'Gates'], ['route', 'Routing']];
+  function renderAlertChips() {
+    $('#alert-chips').innerHTML = cats.map(function (c) {
+      return '<button class="fchip" type="button" data-cat="' + c[0] + '" aria-pressed="' + (af.cat === c[0]) + '">' + c[1] + '</button>';
+    }).join('');
+  }
+  function renderAlerts() {
+    var q = af.q.toLowerCase();
+    var list = alerts.filter(function (a) { return (af.cat === 'all' || a.type === af.cat) && (a.text + ' ' + a.ref + ' ' + a.title).toLowerCase().indexOf(q) > -1; });
+    $('#alert-list').innerHTML = list.length ? list.map(function (a) {
+      return '<li><button class="alert" type="button"><span class="ico ' + a.tone + '">' + icon(a.ic) + '</span><span class="alert-body"><span class="alert-title">' + a.title +
+        '</span><span class="alert-text">' + a.text + '</span><span class="alert-meta num"><span>' + a.ref + '</span><span>' + a.time + '</span></span></span></button></li>';
+    }).join('') : '<li class="alert-empty">No alerts match. Try another filter or clear the search.</li>';
+  }
+  $('#alert-chips').addEventListener('click', function (e) {
+    var b = e.target.closest('.fchip'); if (!b) return; af.cat = b.dataset.cat; renderAlertChips(); renderAlerts();
+  });
+  $('#alert-search').addEventListener('input', function (e) { af.q = e.target.value; renderAlerts(); });
+
+  /* ---------- Operations tabs and filters ---------- */
+  var opTabs = ['Operations', 'Performance', 'Revenue', 'Resources', 'Control', 'Reports'];
+  var curTab = 'Operations';
+  function renderOpTabs() {
+    $('#op-tabs').innerHTML = opTabs.map(function (t) { return '<button class="op-tab" role="tab" type="button" aria-selected="' + (t === curTab) + '">' + t + '</button>'; }).join('');
+    var isOps = curTab === 'Operations';
+    $('#op-panel-operations').hidden = !isOps;
+    $('#op-panel-other').hidden = isOps;
+    $('#other-title').textContent = curTab;
+    if (isOps) requestAnimationFrame(drawCharts);
+  }
+  $('#op-tabs').addEventListener('click', function (e) { var b = e.target.closest('.op-tab'); if (!b) return; curTab = b.textContent; renderOpTabs(); });
+  function updateSub() { $('#ops-sub').textContent = '2026-09-28 to 2026-10-04 · ' + $('#sel-duration').value + ' days · ' + $('#sel-port').value; }
+  $('#sel-port').addEventListener('change', updateSub);
+  $('#sel-duration').addEventListener('change', updateSub);
+
+  /* ---------- Charts (one scale per chart, drawn into SVG) ---------- */
+  var tip = $('#tip');
+  function showTip(text, x, y) {
+    tip.textContent = text; tip.classList.add('on');
+    var w = tip.offsetWidth, h = tip.offsetHeight;
+    tip.style.left = Math.min(Math.max(8, x - w / 2), window.innerWidth - w - 8) + 'px';
+    tip.style.top = Math.max(8, y - h - 14) + 'px';
+  }
+  function hideTip() { tip.classList.remove('on'); }
+  function bindBarTips(host) {
+    host.addEventListener('mousemove', function (e) {
+      var t = e.target.closest('[data-tip]');
+      if (t) showTip(t.getAttribute('data-tip'), e.clientX, e.clientY); else hideTip();
+    });
+    host.addEventListener('mouseleave', hideTip);
+  }
+
+  function barChart(host, o) {
+    var W = host.clientWidth; if (!W) return;
+    var h = o.h || 260, m = { t: 12, r: 8, b: 34, l: o.left || 48 }, iw = W - m.l - m.r, ih = h - m.t - m.b;
+    var y = function (v) { return m.t + ih - (v / o.max) * ih; };
+    var s = '<svg width="' + W + '" height="' + h + '" viewBox="0 0 ' + W + ' ' + h + '" role="img" aria-label="' + host.dataset.label + '">';
+    o.ticks.forEach(function (t) {
+      s += '<line class="grid" x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + y(t) + '" y2="' + y(t) + '"/><text class="ax num" x="' + (m.l - 10) + '" y="' + (y(t) + 4) + '" text-anchor="end">' + o.fmt(t) + '</text>';
+    });
+    var n = o.series.length, gw = iw / o.cats.length, bw = Math.min(o.maxBar || 44, (gw * 0.7) / n), gap = 6, groupW = n * bw + (n - 1) * gap;
+    o.cats.forEach(function (c, ci) {
+      var x0 = m.l + gw * ci + (gw - groupW) / 2;
+      o.series.forEach(function (se, si) {
+        var v = se.values[ci], x = x0 + si * (bw + gap), top = y(v), base = m.t + ih, hh = base - top;
+        if (hh > 0.5) {
+          var r = Math.min(6, hh, bw / 2);
+          s += '<path class="bar" data-tip="' + se.name + ': ' + (se.tip ? se.tip(v) : v) + '" style="fill:' + se.color + '" d="M' + x + ',' + base + 'V' + (top + r) + 'Q' + x + ',' + top + ' ' + (x + r) + ',' + top + 'H' + (x + bw - r) + 'Q' + (x + bw) + ',' + top + ' ' + (x + bw) + ',' + (top + r) + 'V' + base + 'Z"/>';
+        }
+      });
+      s += '<text class="ax" x="' + (m.l + gw * ci + gw / 2) + '" y="' + (h - 10) + '" text-anchor="middle">' + c + '</text>';
+    });
+    host.innerHTML = s + '</svg>';
+  }
+
+  var monthVals = [2, 38, 36, 41, 40, 36, 41, 35, 34, 31, 28, 34, 33, 41, 40, 43, 41, 39, 43, 38, 37, 31, 35, 33, 37];
+  function monthLabel(i) { var d = new Date(2024, 8 + i, 1); return d.toLocaleString('en', { month: 'short' }) + ' ' + String(d.getFullYear()).slice(2); }
+
+  function lineChart(host) {
+    var W = host.clientWidth; if (!W) return;
+    var h = 300, m = { t: 14, r: 14, b: 36, l: 40 }, iw = W - m.l - m.r, ih = h - m.t - m.b, max = 50, n = monthVals.length;
+    var x = function (i) { return m.l + (iw * i) / (n - 1); }, y = function (v) { return m.t + ih - (v / max) * ih; };
+    var step = iw / (n - 1), every = W < 520 ? 6 : W < 760 ? 4 : 3;
+    var s = '<svg width="' + W + '" height="' + h + '" viewBox="0 0 ' + W + ' ' + h + '" role="img" aria-label="' + host.dataset.label + '">';
+    s += '<defs><linearGradient id="lg-area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--blue);stop-opacity:.28"/><stop offset="1" style="stop-color:var(--blue);stop-opacity:0"/></linearGradient></defs>';
+    [0, 10, 20, 30, 40, 50].forEach(function (t) {
+      s += '<line class="grid" x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + y(t) + '" y2="' + y(t) + '"/><text class="ax num" x="' + (m.l - 10) + '" y="' + (y(t) + 4) + '" text-anchor="end">' + t + '</text>';
+    });
+    s += '<rect x="' + (x(n - 1) - step / 2) + '" y="' + m.t + '" width="' + (step / 2 + 6) + '" height="' + ih + '" rx="6" style="fill:var(--primary);opacity:.12"/>';
+    var pts = monthVals.map(function (v, i) { return x(i) + ',' + y(v); });
+    s += '<path d="M' + pts.join('L') + 'L' + x(n - 1) + ',' + (m.t + ih) + 'L' + x(0) + ',' + (m.t + ih) + 'Z" fill="url(#lg-area)"/>';
+    s += '<path d="M' + pts.slice(0, n - 1).join('L') + '" fill="none" style="stroke:var(--blue)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+    s += '<path d="M' + pts.slice(n - 2).join('L') + '" fill="none" style="stroke:var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="1 6"/>';
+    s += '<circle cx="' + x(n - 1) + '" cy="' + y(monthVals[n - 1]) + '" r="6" style="fill:var(--primary);stroke:var(--surface)" stroke-width="3"/>';
+    monthVals.forEach(function (v, i) {
+      if ((n - 1 - i) % every === 0) s += '<text class="ax" x="' + x(i) + '" y="' + (h - 12) + '" text-anchor="' + (i === n - 1 ? 'end' : 'middle') + '">' + monthLabel(i) + '</text>';
+    });
+    s += '<line id="lc-guide" y1="' + m.t + '" y2="' + (m.t + ih) + '" style="stroke:var(--text-3)" stroke-dasharray="3 4" opacity="0"/><circle id="lc-dot" r="5" opacity="0" style="fill:var(--blue);stroke:var(--surface)" stroke-width="3"/>';
+    host.innerHTML = s + '</svg>';
+    var guide = $('#lc-guide', host), dot = $('#lc-dot', host), box = host.firstChild;
+    function off() { guide.setAttribute('opacity', 0); dot.setAttribute('opacity', 0); hideTip(); }
+    host.onmousemove = function (e) {
+      var r = box.getBoundingClientRect(), i = Math.round((e.clientX - r.left - m.l) / step);
+      if (i < 0 || i >= n) return off();
+      guide.setAttribute('x1', x(i)); guide.setAttribute('x2', x(i)); guide.setAttribute('opacity', 1);
+      dot.setAttribute('cx', x(i)); dot.setAttribute('cy', y(monthVals[i])); dot.setAttribute('opacity', 1);
+      showTip(monthLabel(i) + (i === n - 1 ? ' (to 28 Sep)' : '') + ': ' + monthVals[i] + ' trucks', r.left + x(i), r.top + y(monthVals[i]));
+    };
+    host.onmouseleave = off;
+  }
+
+  function drawCharts() {
+    if (screens.operations.hidden || $('#op-panel-operations').hidden) return;
+    barChart($('#chart-port'), {
+      cats: ['Benapole'], max: 20, ticks: [0, 5, 10, 15, 20], fmt: String, h: 270, left: 36,
+      series: [
+        { name: 'Foreign (import)', color: 'var(--primary)', values: [17], tip: function (v) { return v + ' trucks'; } },
+        { name: 'Export', color: 'var(--blue)', values: [3], tip: function (v) { return v + ' trucks'; } },
+        { name: 'Local', color: 'var(--orange)', values: [16], tip: function (v) { return v + ' trucks'; } }
+      ]
+    });
+    var money = function (v) { return 'BDT ' + v.toLocaleString('en-US'); };
+    barChart($('#chart-money'), {
+      cats: ['Benapole'], max: 2000000, ticks: [0, 500000, 1000000, 1500000, 2000000], h: 270, left: 52,
+      fmt: function (t) { return t === 0 ? '0' : t >= 1000000 ? (t / 1000000).toFixed(1) + 'M' : t / 1000 + 'k'; },
+      series: [
+        { name: 'Billed', color: 'var(--blue)', values: [1300000], tip: money },
+        { name: 'Counted', color: 'var(--primary)', values: [1240000], tip: money },
+        { name: 'Owed now', color: 'var(--red)', values: [70000], tip: money }
+      ]
+    });
+    lineChart($('#chart-months'));
+    barChart($('#chart-years'), {
+      cats: ['2024 (4 mo)', '2025', '2026 (9 mo)'], max: 5000, ticks: [0, 1000, 2000, 3000, 4000, 5000], h: 300, left: 40, maxBar: 36,
+      fmt: function (t) { return t === 0 ? '0' : t / 1000 + 'k'; },
+      series: [{ name: 'Trucks admitted', color: 'var(--primary)', values: [1100, 3900, 3050], tip: function (v) { return v.toLocaleString('en-US') + ' trucks'; } }]
+    });
+  }
+  ['#chart-port', '#chart-money', '#chart-months', '#chart-years'].forEach(function (id) {
+    var host = $(id);
+    if (id !== '#chart-months') bindBarTips(host);
+    if (window.ResizeObserver) new ResizeObserver(function () { requestAnimationFrame(drawCharts); }).observe(host);
+  });
+
+  renderTabs(); renderTable(); renderAlertChips(); renderAlerts(); renderOpTabs(); showScreen();
+})();
+</script>
