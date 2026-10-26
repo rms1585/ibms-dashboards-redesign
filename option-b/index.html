@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>html{color-scheme:light}body{margin:0}img{max-width:100%}</style>
+<meta charset="utf-8">
+<title>IBMS Dashboards Option B</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: Minimals dashboard shell. Fixed 280px vertical nav, header with actions, content in a 1200px container.
+   Light only. Tokens follow the IBMS Figma file (Public Sans, Forest Green, Grey scale) and the Minimals component specs
+   (16px card radius, 8px controls, soft labels, dashed table rules, card shadow). */
+:root {
+  --font: 'Public Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --bg: #FFFFFF;
+  --paper: #FFFFFF;
+  --neutral: #F4F5F7;
+  --divider: rgba(145, 158, 171, 0.24);
+  --divider-dash: rgba(145, 158, 171, 0.32);
+  --outline: rgba(145, 158, 171, 0.32);
+  --hover: rgba(145, 158, 171, 0.08);
+  --selected: rgba(145, 158, 171, 0.16);
+  --text: #2B3136;
+  --text-2: #677481;
+  --text-3: #919EAB;
+  --primary: #008F40;
+  --primary-d: #007A36;
+  --primary-8: rgba(0, 143, 64, 0.08);
+  --primary-16: rgba(0, 143, 64, 0.16);
+  --info: #4166FB;
+  --info-t: #2A45C8;
+  --info-16: rgba(65, 102, 251, 0.16);
+  --warn: #FFA70F;
+  --warn-t: #945700;
+  --warn-16: rgba(255, 167, 15, 0.16);
+  --err: #FF3030;
+  --err-t: #C80D0D;
+  --err-16: rgba(255, 48, 48, 0.16);
+  --grey-16: rgba(145, 158, 171, 0.16);
+  --sh-card: 0 0 2px 0 rgba(145, 158, 171, 0.24), 0 16px 32px -4px rgba(145, 158, 171, 0.24);
+  --sh-z8: 0 8px 16px 0 rgba(145, 158, 171, 0.24);
+  --sh-z20: 0 20px 40px -4px rgba(145, 158, 171, 0.32);
+  --sh-raised: 0 0 2px 0 rgba(145, 158, 171, 0.32), 0 18px 36px -6px rgba(145, 158, 171, 0.34);
+  --gutter: 40px;
+  color-scheme: light;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font: 400 14px/22px var(--font); -webkit-font-smoothing: antialiased; }
+h1, h2, h3, p, ul { margin: 0; }
+ul { padding: 0; list-style: none; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+a { color: inherit; }
+svg.i { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 6px; }
+.num { font-variant-numeric: tabular-nums; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+[hidden] { display: none !important; }
+
+/* Type scale (Minimals) */
+.h4 { font-size: 24px; line-height: 36px; font-weight: 700; }
+.h3 { font-size: 32px; line-height: 44px; font-weight: 700; letter-spacing: -0.01em; }
+.h6 { font-size: 18px; line-height: 28px; font-weight: 600; }
+.sub2 { font-size: 14px; line-height: 22px; font-weight: 600; }
+.body2 { font-size: 14px; line-height: 22px; }
+.caption { font-size: 12px; line-height: 18px; color: var(--text-3); }
+.overline { font-size: 11px; line-height: 18px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
+.muted { color: var(--text-2); }
+
+/* ---------- Nav ---------- */
+.nav {
+  position: fixed; inset: 0 auto 0 0; width: 280px; z-index: 30; background: var(--paper);
+  border-right: 1px dashed var(--divider-dash); display: flex; flex-direction: column;
+  padding: calc(24px + env(safe-area-inset-top, 0px)) 16px 24px calc(16px + env(safe-area-inset-left, 0px));
+  transition: transform .2s ease;
+}
+.brand { display: flex; align-items: center; gap: 10px; padding: 0 12px 28px; }
+.brand-mark { width: 36px; height: 36px; border-radius: 10px; background: var(--primary); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 13px; letter-spacing: .02em; }
+.brand b { display: block; font-size: 16px; line-height: 20px; font-weight: 800; }
+.brand small { display: block; font-size: 12px; line-height: 16px; color: var(--text-3); }
+.nav .overline { padding: 0 12px 8px; }
+.nav-list { display: flex; flex-direction: column; gap: 4px; }
+.nav-item {
+  display: flex; align-items: center; gap: 14px; height: 44px; padding: 0 12px; border-radius: 8px; border: 0; background: none;
+  color: var(--text-2); font-weight: 500; text-align: left; width: 100%; transition: background .15s, color .15s;
+}
+.nav-item:hover { background: var(--hover); color: var(--text); }
+.nav-item[aria-current="page"] { background: var(--primary-8); color: var(--primary-d); font-weight: 600; }
+.nav-badge { min-width: 26px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--err); color: #fff; font-size: 12px; font-weight: 700; line-height: 20px; text-align: center; }
+.nav-foot { margin-top: auto; display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; background: var(--neutral); }
+.scrim { position: fixed; inset: 0; z-index: 25; background: rgba(43, 49, 54, .48); }
+
+/* ---------- Main + header ---------- */
+.main { margin-left: 280px; min-width: 0; }
+/* Desktop has no top header; the bar only appears below 1200px to open the nav drawer */
+.header {
+  height: 64px; display: none; align-items: center; gap: 12px;
+  padding-left: max(var(--gutter), env(safe-area-inset-left, 0px)); padding-right: max(var(--gutter), env(safe-area-inset-right, 0px));
+}
+.icon-btn { width: 40px; height: 40px; border-radius: 50%; border: 0; background: none; color: var(--text-2); display: grid; place-items: center; position: relative; transition: background .15s; }
+.icon-btn:hover { background: var(--hover); }
+.avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary-16); color: var(--primary-d); display: grid; place-items: center; font-weight: 700; flex: none; }
+
+.content {
+  padding-left: max(var(--gutter), env(safe-area-inset-left, 0px)); padding-right: max(var(--gutter), env(safe-area-inset-right, 0px));
+  padding-block: 32px 120px;
+}
+.container { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+.page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+
+/* ---------- Controls ---------- */
+.card { background: var(--paper); border-radius: 16px; box-shadow: var(--sh-card); min-width: 0; }
+.card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 24px 24px 0; flex-wrap: wrap; }
+.card-head p { color: var(--text-2); margin-top: 2px; }
+.label { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 6px; border-radius: 6px; font-size: 12px; line-height: 1; font-weight: 700; white-space: nowrap; }
+.label.success { background: var(--primary-16); color: var(--primary-d); }
+.label.warning { background: var(--warn-16); color: var(--warn-t); }
+.label.error { background: var(--err-16); color: var(--err-t); }
+.label.info { background: var(--info-16); color: var(--info-t); }
+.label.default { background: var(--grey-16); color: var(--text-2); }
+.label.filled { background: var(--text); color: #fff; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 0 12px; border-radius: 8px;
+  border: 1px solid var(--outline); background: transparent; font-weight: 700; font-size: 14px; white-space: nowrap; transition: background .15s, border-color .15s;
+}
+.btn:hover { background: var(--hover); border-color: var(--text); }
+.btn svg.i { width: 18px; height: 18px; }
+.btn.text { border-color: transparent; padding: 0 8px; }
+.btn.text:hover { background: var(--hover); border-color: transparent; }
+.btn.small { height: 30px; font-size: 13px; padding: 0 10px; }
+.btn:disabled { color: var(--text-3); border-color: var(--divider); background: none; cursor: not-allowed; }
+.field { display: flex; align-items: center; gap: 8px; height: 48px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--outline); background: var(--paper); color: var(--text-3); transition: border-color .15s; }
+.field:hover { border-color: var(--text); }
+.field:focus-within { border: 2px solid var(--text); padding: 0 13px; }
+.field input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; color: var(--text); }
+.field input::placeholder { color: var(--text-3); }
+.field.sm { height: 40px; }
+.search-lg { width: min(100%, 360px); }
+.select { position: relative; display: block; min-width: 160px; }
+.select span { position: absolute; top: -9px; left: 10px; padding: 0 4px; background: var(--paper); font-size: 12px; line-height: 18px; color: var(--text-2); }
+.select select { appearance: none; width: 100%; height: 48px; padding: 0 40px 0 14px; border-radius: 8px; border: 1px solid var(--outline); background: var(--paper); cursor: pointer; }
+.select select:hover { border-color: var(--text); }
+.select svg.i { position: absolute; right: 12px; top: 14px; pointer-events: none; color: var(--text-2); }
+.select.sm select { height: 40px; }
+.select.sm svg.i { top: 10px; }
+.tabs { display: flex; gap: 40px; overflow-x: auto; box-shadow: inset 0 -2px 0 0 var(--hover); }
+.tab { position: relative; display: inline-flex; align-items: center; gap: 8px; height: 48px; padding: 0; border: 0; background: none; color: var(--text-2); font-weight: 600; white-space: nowrap; }
+.tab:hover { color: var(--text); }
+.tab[aria-selected="true"] { color: var(--text); }
+.tab[aria-selected="true"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--primary); }
+
+/* ---------- Billing screen ---------- */
+.grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
+.kpis { gap: 20px; }
+.kpi { border-radius: 24px; box-shadow: var(--sh-raised); padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.kpi-label { color: var(--text-2); font-weight: 500; min-height: 40px; line-height: 20px; }
+.kpi-value { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; font-size: 28px; line-height: 36px; font-weight: 800; letter-spacing: -0.01em; }
+.kpi-value small { font-size: 13px; font-weight: 600; color: var(--text-2); letter-spacing: 0; }
+.kpi-value .caption { font-weight: 400; letter-spacing: 0; }
+.tile-ico { width: 48px; height: 48px; border-radius: 16px; display: grid; place-items: center; flex: none; }
+.tile-ico svg.i { width: 24px; height: 24px; }
+.tile-ico.success { background: var(--primary-16); color: var(--primary-d); }
+.tile-ico.warning { background: var(--warn-16); color: var(--warn-t); }
+.tile-ico.error { background: var(--err-16); color: var(--err-t); }
+.tile-ico.info { background: var(--info-16); color: var(--info-t); }
+.stat-value small { font-size: 14px; font-weight: 600; color: var(--text-3); margin-left: 4px; letter-spacing: 0; }
+.hairline { display: grid; gap: 1px; background: var(--divider); border-radius: 0 0 16px 16px; overflow: hidden; }
+.hairline > * { background: var(--paper); }
+.summary { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 24px; border-top: 1px solid var(--divider); }
+.stat { padding: 20px 24px 24px; display: flex; flex-direction: column; gap: 6px; }
+.stat-label { display: flex; align-items: center; gap: 8px; color: var(--text-2); }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.stat-value { font-size: 24px; line-height: 36px; font-weight: 700; }
+.split { display: grid; grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); gap: 24px; align-items: start; }
+.table-card .tabs { padding: 0 24px; margin-top: 16px; }
+.tab .label { height: 22px; }
+.toolbar { display: flex; gap: 12px; padding: 20px 24px; align-items: center; }
+.toolbar .field { flex: 1; }
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 640px; }
+th { background: var(--neutral); color: var(--text-2); font-weight: 600; text-align: left; padding: 16px; white-space: nowrap; }
+th:first-child, td:first-child { padding-left: 24px; }
+th:last-child, td:last-child { padding-right: 16px; text-align: right; }
+td { padding: 16px; border-bottom: 1px dashed var(--divider-dash); white-space: nowrap; }
+tbody tr:hover { background: var(--hover); }
+td.veh { color: var(--text-2); }
+.empty-row td { text-align: center; color: var(--text-2); padding: 56px 16px; white-space: normal; }
+.pager { display: flex; align-items: center; justify-content: flex-end; gap: 20px; padding: 8px 16px 8px 24px; color: var(--text); flex-wrap: wrap; }
+.pager label { display: flex; align-items: center; gap: 8px; }
+.pager select { border: 0; background: none; font-weight: 500; cursor: pointer; padding: 4px; }
+.pager .arrows { display: flex; gap: 4px; }
+.pager .icon-btn:disabled { color: var(--text-3); cursor: not-allowed; background: none; opacity: .6; }
+
+.alerts .card-head { align-items: center; }
+.timeline { padding: 24px 24px 8px; }
+.tl-item { display: grid; grid-template-columns: 12px minmax(0, 1fr); gap: 16px; position: relative; padding-bottom: 24px; }
+.tl-item:not(:last-child)::before { content: ""; position: absolute; left: 5px; top: 18px; bottom: 2px; width: 2px; background: var(--neutral); }
+.tl-dot { width: 12px; height: 12px; border-radius: 50%; margin-top: 5px; }
+.tl-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.tl-body .body2 { color: var(--text-2); }
+.tl-link { all: unset; cursor: pointer; font-weight: 600; }
+.tl-link:hover { text-decoration: underline; }
+.tl-link:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 4px; }
+.card-foot { display: flex; justify-content: flex-end; padding: 8px 16px 16px; border-top: 1px dashed var(--divider-dash); }
+
+/* ---------- Operations screen ---------- */
+.filters { display: flex; gap: 16px; flex-wrap: wrap; }
+.section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.widget .trends { margin-top: -4px; }
+.trends { display: flex; flex-direction: column; gap: 10px; }
+.trend { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.trend-ico { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+.trend-ico svg.i { width: 16px; height: 16px; stroke-width: 2.2; }
+.trend-ico.down { background: var(--err-16); color: var(--err-t); }
+.trend b { font-weight: 600; }
+.trend b.down { color: var(--err-t); }
+.trend span { color: var(--text-2); }
+.stats6 { grid-template-columns: repeat(6, minmax(0, 1fr)); margin-top: 24px; border-top: 1px solid var(--divider); }
+.stats6 .stat { padding: 20px 20px 24px; }
+.stats6 .stat-value { font-size: 32px; line-height: 44px; }
+.stat-value.warn { color: var(--warn-t); }
+.live { display: inline-flex; align-items: center; gap: 6px; }
+.live i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.charts { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 24px; }
+.chart-card { grid-column: span 6; padding-bottom: 16px; }
+.chart-card.wide { grid-column: span 8; }
+.chart-card.narrow { grid-column: span 4; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; font-weight: 500; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.plot { position: relative; padding: 16px 16px 0 8px; }
+.plot svg { display: block; overflow: visible; }
+.ax { fill: var(--text-3); font: 400 12px var(--font); }
+.grid { stroke: var(--divider-dash); stroke-dasharray: 3 3; }
+.empty-state { padding: 80px 24px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; color: var(--text-2); }
+
+/* ---------- Screen switch, tooltip, toast ---------- */
+.switch {
+  position: fixed; left: calc(50% + 140px); transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); z-index: 20;
+  display: flex; gap: 4px; padding: 4px; border-radius: 10px; background: var(--paper); border: 1px solid var(--divider); box-shadow: var(--sh-z20);
+}
+.switch a { display: inline-flex; align-items: center; height: 36px; padding: 0 14px; border-radius: 8px; color: var(--text-2); font-weight: 600; text-decoration: none; white-space: nowrap; }
+.switch a:hover { background: var(--hover); color: var(--text); }
+.switch a[aria-current="page"] { background: var(--selected); color: var(--text); }
+.tip { position: fixed; z-index: 40; pointer-events: none; background: var(--paper); color: var(--text); border-radius: 8px; box-shadow: var(--sh-z20); padding: 8px 12px; font-size: 12px; line-height: 18px; opacity: 0; transition: opacity .1s; }
+.tip b { display: block; font-weight: 600; }
+.tip.on { opacity: 1; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(84px + env(safe-area-inset-bottom, 0px)); z-index: 40; background: var(--text); color: #fff; padding: 10px 16px; border-radius: 8px; box-shadow: var(--sh-z20); font-weight: 500; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1199px) {
+  .nav { transform: translateX(-100%); box-shadow: none; }
+  .nav.open { transform: none; box-shadow: var(--sh-z20); }
+  .main { margin-left: 0; }
+  .header { display: flex; }
+  .content { padding-top: 8px; }
+  .switch { left: 50%; }
+  .split { grid-template-columns: minmax(0, 1fr); }
+  .chart-card, .chart-card.wide, .chart-card.narrow { grid-column: span 12; }
+  .stats6 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 900px) {
+  .grid-4, .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid-3 { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 600px) {
+  :root { --gutter: 16px; }
+  .grid-4 { grid-template-columns: minmax(0, 1fr); }
+  .stats6 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tabs { gap: 24px; }
+  .toolbar { flex-wrap: wrap; }
+  .select { flex: 1; min-width: 140px; }
+  .switch a { padding: 0 10px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2.5"/><path d="m16 10.5 5-3v9l-5-3z"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h10M4 17h16"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10.3 20a2 2 0 0 0 3.4 0"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+    <symbol id="i-chev-d" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-chev-r" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="i-chev-l" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 11 5 5 5-5"/><path d="M5 20h14"/></symbol>
+    <symbol id="i-trend-down" viewBox="0 0 24 24"><path d="m3 7 6 6 4-4 8 8"/><path d="M21 11v6h-6"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M4 7a2 2 0 0 1 2-2h12v4"/><path d="M4 7v10a2 2 0 0 0 2 2h14V9H6a2 2 0 0 1-2-2z"/><path d="M16 14h.01"/></symbol>
+    <symbol id="i-truck" viewBox="0 0 24 24"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></symbol>
+    <symbol id="i-bell-ok" viewBox="0 0 24 24"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10.3 20a2 2 0 0 0 3.4 0"/><path d="m9.5 9.5 1.8 1.8 3.2-3.4"/></symbol>
+    <symbol id="i-in" viewBox="0 0 24 24"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><circle cx="7" cy="18" r="2"/><path d="M16 12h6m-3-3 3 3-3 3"/></symbol>
+    <symbol id="i-out" viewBox="0 0 24 24"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><circle cx="7" cy="18" r="2"/><path d="M22 12h-6m3-3-3 3 3 3"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="M12 8v5M12 16h.01"/></symbol>
+  </defs>
+</svg>
+
+<aside class="nav" id="nav" aria-label="Main navigation">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">IB</span>
+    <span><b>IBMS</b><small>C&amp;F portal · Benapole</small></span>
+  </div>
+  <p class="overline">Overview</p>
+  <nav class="nav-list">
+    <button class="nav-item" type="button" aria-current="page"><svg class="i"><use href="#i-home"/></svg>Dashboard</button>
+    <button class="nav-item" type="button" data-soon="Manifest history"><svg class="i"><use href="#i-doc"/></svg>Manifest history</button>
+    <button class="nav-item" type="button" data-soon="Live cameras"><svg class="i"><use href="#i-camera"/></svg>Live cameras</button>
+    <button class="nav-item" type="button" data-soon="Notifications" aria-label="Notifications, 13 unread"><svg class="i"><use href="#i-bell"/></svg>Notifications<span class="nav-badge num" aria-hidden="true">13</span></button>
+  </nav>
+  <div class="nav-foot">
+    <span class="avatar" aria-hidden="true">AR</span>
+    <span><b class="sub2" style="display:block">Arifur Rahman</b><span class="caption">Weighbridge</span></span>
+    <span class="label info" style="margin-left:auto">Demo</span>
+  </div>
+</aside>
+<div class="scrim" id="scrim" hidden></div>
+
+<div class="main">
+  <header class="header">
+    <button class="icon-btn" id="menu-btn" type="button" aria-label="Open navigation" aria-controls="nav" aria-expanded="false"><svg class="i"><use href="#i-menu"/></svg></button>
+    <span class="sub2">IBMS</span>
+  </header>
+
+  <!-- ================= Screen 1: Billing ================= -->
+  <main class="content" id="screen-billing" aria-labelledby="h-billing">
+    <div class="container">
+      <div class="page-head">
+        <div><h1 class="h4" id="h-billing">Dashboard</h1><p class="muted">Today at a glance · 16 July 2026</p></div>
+        <label class="field search-lg">
+          <svg class="i"><use href="#i-search"/></svg><span class="sr">Search manifests</span>
+          <input id="global-search" type="search" placeholder="Search manifest or vehicle number" autocomplete="off">
+        </label>
+      </div>
+
+      <section class="grid-4 kpis" aria-label="Key figures">
+        <article class="card kpi"><span class="tile-ico info"><svg class="i"><use href="#i-wallet"/></svg></span><p class="kpi-label">Total dues across 30 active manifests</p><p class="kpi-value num">64,309.00<small>BDT</small></p></article>
+        <article class="card kpi"><span class="tile-ico success"><svg class="i"><use href="#i-doc"/></svg></span><p class="kpi-label">Active manifests</p><p class="kpi-value num">100</p></article>
+        <article class="card kpi"><span class="tile-ico error"><svg class="i"><use href="#i-truck"/></svg></span><p class="kpi-label">Trucks in port</p><p class="kpi-value num">36</p></article>
+        <article class="card kpi"><span class="tile-ico warning"><svg class="i"><use href="#i-bell-ok"/></svg></span><p class="kpi-label">Unread alerts</p><p class="kpi-value num">0<span class="caption">You are all caught up</span></p></article>
+      </section>
+
+      <section class="card" aria-labelledby="h-bill">
+        <div class="card-head">
+          <div><h2 class="h6" id="h-bill">Billing summary</h2><p>Land port bills across all active manifests</p></div>
+          <button class="btn text" type="button">View all bills<svg class="i"><use href="#i-chev-r"/></svg></button>
+        </div>
+        <div class="hairline summary">
+          <div class="stat"><span class="stat-label"><i class="dot" style="background:var(--primary)"></i>Total billed</span><span class="stat-value num">1,24,500<small>BDT</small></span></div>
+          <div class="stat"><span class="stat-label"><i class="dot" style="background:var(--warn)"></i>Payment dues</span><span class="stat-value num">50,000<small>BDT</small></span></div>
+          <div class="stat"><span class="stat-label"><i class="dot" style="background:var(--info)"></i>Paid</span><span class="stat-value num">6,32,900<small>BDT</small></span></div>
+          <div class="stat"><span class="stat-label"><i class="dot" style="background:var(--err)"></i>Overdue</span><span class="stat-value num">80,000<small>BDT</small></span></div>
+        </div>
+      </section>
+
+      <div class="split">
+        <section class="card table-card" aria-labelledby="h-mf">
+          <div class="card-head">
+            <div><h2 class="h6" id="h-mf">Manifests</h2><p>Customs and land port bill status per manifest</p></div>
+            <button class="btn" type="button"><svg class="i"><use href="#i-download"/></svg>Export</button>
+          </div>
+          <div class="tabs" role="tablist" aria-label="Filter by customs status" id="mf-tabs"></div>
+          <div class="toolbar">
+            <label class="field sm">
+              <svg class="i"><use href="#i-search"/></svg><span class="sr">Filter manifests</span>
+              <input id="mf-search" type="search" placeholder="Filter by manifest no." autocomplete="off">
+            </label>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th scope="col">Manifest no.</th><th scope="col">Indian veh.</th><th scope="col">BD veh.</th><th scope="col">Customs</th><th scope="col">Land port bill</th><th scope="col"><span class="sr">Action</span></th></tr></thead>
+              <tbody id="mf-body"></tbody>
+            </table>
+          </div>
+          <div class="pager">
+            <label for="rows">Rows per page<select id="rows"><option>5</option><option selected>10</option><option>25</option></select></label>
+            <span id="pager-info" class="num">1–10 of 100</span>
+            <span class="arrows">
+              <button class="icon-btn" id="pg-prev" type="button" aria-label="Previous page"><svg class="i"><use href="#i-chev-l"/></svg></button>
+              <button class="icon-btn" id="pg-next" type="button" aria-label="Next page"><svg class="i"><use href="#i-chev-r"/></svg></button>
+            </span>
+          </div>
+        </section>
+
+        <aside class="card alerts" aria-labelledby="h-alerts">
+          <div class="card-head">
+            <h2 class="h6" id="h-alerts">Alerts</h2>
+            <span class="label error num">60 alerts</span>
+          </div>
+          <p class="muted" style="padding:4px 24px 0">Newest first. Open one to jump to its manifest.</p>
+          <ul class="timeline" id="timeline"></ul>
+          <div class="card-foot"><button class="btn text" type="button">View all alerts<svg class="i"><use href="#i-chev-r"/></svg></button></div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <!-- ================= Screen 2: Operations ================= -->
+  <main class="content" id="screen-operations" aria-labelledby="h-ops" hidden>
+    <div class="container">
+      <div class="page-head">
+        <div><h1 class="h4" id="h-ops">Dashboard</h1><p class="muted num" id="ops-sub">2026-09-28 to 2026-10-04 · 7 days · Benapole</p></div>
+        <div class="filters">
+          <label class="select"><span>Port</span><select id="sel-port"><option>Benapole</option><option>All ports</option></select><svg class="i"><use href="#i-chev-d"/></svg></label>
+          <label class="select"><span>Duration</span><select id="sel-duration"><option value="7">7 days</option><option value="30">30 days</option><option value="90">90 days</option></select><svg class="i"><use href="#i-chev-d"/></svg></label>
+        </div>
+      </div>
+
+      <div class="tabs" role="tablist" aria-label="Dashboard sections" id="op-tabs"></div>
+
+      <div id="panel-ops" class="container" style="max-width:none" role="tabpanel">
+        <div class="section-head">
+          <h2 class="h6">Over today</h2>
+          <button class="btn" type="button"><svg class="i"><use href="#i-download"/></svg>Export comparison</button>
+        </div>
+        <section class="grid-3 kpis" aria-label="Over today">
+          <article class="card kpi widget">
+            <span class="tile-ico success"><svg class="i"><use href="#i-in"/></svg></span><p class="kpi-label">Trucks admitted</p><p class="kpi-value num">59</p>
+            <div class="trends">
+              <p class="trend"><span class="trend-ico down"><svg class="i"><use href="#i-trend-down"/></svg></span><b class="down num">−33.7%</b><span class="num">vs period before (89)</span></p>
+              <p class="trend"><span class="trend-ico down"><svg class="i"><use href="#i-trend-down"/></svg></span><b class="down num">−25.3%</b><span class="num">vs same period last year (79)</span></p>
+            </div>
+          </article>
+          <article class="card kpi widget">
+            <span class="tile-ico warning"><svg class="i"><use href="#i-out"/></svg></span><p class="kpi-label">Trucks that left</p><p class="kpi-value num">26</p>
+            <div class="trends">
+              <p class="trend"><span class="trend-ico down"><svg class="i"><use href="#i-trend-down"/></svg></span><b class="down num">−74.3%</b><span class="num">vs period before (101)</span></p>
+              <p class="trend"><span class="trend-ico down"><svg class="i"><use href="#i-trend-down"/></svg></span><b class="down num">−67.5%</b><span class="num">vs same period last year (80)</span></p>
+            </div>
+          </article>
+          <article class="card kpi widget">
+            <span class="tile-ico info"><svg class="i"><use href="#i-shield"/></svg></span><p class="kpi-label">Customs holds</p><p class="kpi-value num">0</p>
+            <div class="trends">
+              <p class="trend"><span class="label default">No data</span><span class="num">vs period before (0)</span></p>
+              <p class="trend"><span class="label default">No data</span><span class="num">vs same period last year (0)</span></p>
+            </div>
+          </article>
+        </section>
+
+        <section class="card" aria-labelledby="h-ov">
+          <div class="card-head" style="align-items:center">
+            <div style="display:flex;align-items:center;gap:12px"><h2 class="h6" id="h-ov">Overviews</h2><span class="label success live"><i></i>Live</span></div>
+            <button class="btn" type="button"><svg class="i"><use href="#i-download"/></svg>Export these tiles</button>
+          </div>
+          <div class="hairline stats6">
+            <div class="stat"><span class="muted">Trucks in port now</span><span class="stat-value num">36</span></div>
+            <div class="stat"><span class="muted">Expected arrivals today</span><span class="stat-value num">5</span></div>
+            <div class="stat"><span class="muted">Oldest wait at a checkpoint</span><span class="stat-value warn num">143<small>h 47 min</small></span></div>
+            <div class="stat"><span class="muted">Open holds</span><span class="stat-value num">0</span></div>
+            <div class="stat"><span class="muted">Loaded, waiting for a pass</span><span class="stat-value num">1</span></div>
+            <div class="stat"><span class="muted">Admitted without manifest</span><span class="stat-value num">1</span></div>
+          </div>
+        </section>
+
+        <div class="charts">
+          <section class="card chart-card" aria-labelledby="h-c1">
+            <div class="card-head">
+              <div><h3 class="h6" id="h-c1">Trucks inside, by port</h3><p>Admitted and not yet left, right now</p></div>
+              <div class="legend"><span><i class="dot" style="background:var(--primary)"></i>Foreign (import)</span><span><i class="dot" style="background:var(--info)"></i>Export</span><span><i class="dot" style="background:var(--warn)"></i>Local</span></div>
+            </div>
+            <div class="plot" id="chart-port" data-label="Trucks inside Benapole: 17 foreign import, 3 export, 16 local"></div>
+          </section>
+          <section class="card chart-card" aria-labelledby="h-c2">
+            <div class="card-head">
+              <div><h3 class="h6" id="h-c2">Money on open bills, by port</h3><p>BDT, right now. Counted = cash, online and cleared cheques</p></div>
+              <div class="legend"><span><i class="dot" style="background:var(--info)"></i>Billed</span><span><i class="dot" style="background:var(--primary)"></i>Counted</span><span><i class="dot" style="background:var(--err)"></i>Owed now</span></div>
+            </div>
+            <div class="plot" id="chart-money" data-label="Open bills at Benapole: billed 1.30 million, counted 1.24 million, owed 70 thousand BDT"></div>
+          </section>
+          <section class="card chart-card wide" aria-labelledby="h-c3">
+            <div class="card-head">
+              <div><h3 class="h6" id="h-c3">Trucks admitted, month by month</h3><p>24 months to 2026-09-28</p></div>
+              <div style="display:flex;gap:12px;flex-wrap:wrap">
+                <label class="select sm" style="min-width:176px"><span>Metric</span><select id="sel-metric"><option>Trucks admitted</option></select><svg class="i"><use href="#i-chev-d"/></svg></label>
+                <button class="btn" type="button" style="height:40px"><svg class="i"><use href="#i-download"/></svg>Export</button>
+              </div>
+            </div>
+            <div class="plot" id="chart-months" data-label="Trucks admitted per month, September 2024 to September 2026, steady around 35 to 40"></div>
+          </section>
+          <section class="card chart-card narrow" aria-labelledby="h-c4">
+            <div class="card-head">
+              <div><h3 class="h6" id="h-c4">By year</h3><p>Whole calendar years</p></div>
+              <button class="btn" type="button"><svg class="i"><use href="#i-download"/></svg>Export</button>
+            </div>
+            <div class="plot" id="chart-years" data-label="Trucks admitted per year: 1,100 in 2024 (4 months), 3,900 in 2025, 3,050 in 2026 (9 months)"></div>
+          </section>
+        </div>
+      </div>
+
+      <section id="panel-other" class="card empty-state" role="tabpanel" hidden>
+        <h2 class="h6" id="other-title" style="color:var(--text)">Performance</h2>
+        <p>This section isn't part of the prototype. Operations shows the full layout.</p>
+      </section>
+    </div>
+  </main>
+</div>
+
+<nav class="switch" aria-label="Choose screen">
+  <a href="#billing" id="sw-billing" aria-current="page">Billing</a>
+  <a href="#operations" id="sw-operations">Operations</a>
+</nav>
+<div class="tip" id="tip" role="presentation"></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(function () {
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var icon = function (id) { return '<svg class="i"><use href="#' + id + '"/></svg>'; };
+
+  /* ---------- Shell: screens, nav drawer, toast ---------- */
+  var screens = { billing: $('#screen-billing'), operations: $('#screen-operations') };
+  function showScreen() {
+    var key = location.hash === '#operations' ? 'operations' : 'billing';
+    Object.keys(screens).forEach(function (k) {
+      screens[k].hidden = k !== key;
+      var a = $('#sw-' + k);
+      if (k === key) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+    window.scrollTo(0, 0);
+    requestAnimationFrame(drawCharts);
+  }
+  window.addEventListener('hashchange', showScreen);
+
+  var nav = $('#nav'), scrim = $('#scrim'), menuBtn = $('#menu-btn');
+  function setNav(open) { nav.classList.toggle('open', open); scrim.hidden = !open; menuBtn.setAttribute('aria-expanded', String(open)); }
+  menuBtn.addEventListener('click', function () { setNav(true); });
+  scrim.addEventListener('click', function () { setNav(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setNav(false); });
+
+  var toast = $('#toast'), toastTimer;
+  function say(msg) { toast.textContent = msg; toast.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(function () { toast.hidden = true; }, 2400); }
+  document.querySelectorAll('[data-soon]').forEach(function (b) {
+    b.addEventListener('click', function () { say(b.dataset.soon + ' is not part of this prototype.'); setNav(false); });
+  });
+
+  /* ---------- Manifest table ---------- */
+  var patterns = [
+    ['-', '-', 'Not paid', 'Not paid'], ['-', '-', 'Not paid', 'Not paid'], ['-', '-', 'Not paid', 'Not paid'], ['-', '-', 'Not paid', 'Not paid'],
+    ['5', '6', 'Pending', 'Paid, not exited'], ['2', '3', 'Pending', 'Pending'], ['4', '6', 'Paid', 'Fully paid'], ['1', '3', 'Paid', 'Paid, not exited'],
+    ['5', '5', 'Paid', 'Paid, not exited'], ['3', '7', 'Pending', 'Pending'], ['3', '4', 'Pending', 'Fully paid'], ['2', '2', 'Paid', 'Fully paid']
+  ];
+  var rows = [];
+  for (var i = 0; i < 100; i++) {
+    var p = patterns[i % patterns.length];
+    rows.push({ id: 'MNF-00078-' + String(988 - i).padStart(4, '0'), ind: p[0], bd: p[1], customs: p[2], bill: p[3] });
+  }
+  var tone = { 'Not paid': 'error', 'Pending': 'warning', 'Paid': 'success', 'Paid, not exited': 'info', 'Fully paid': 'success' };
+  var tabsDef = [['all', 'All', 'filled'], ['Not paid', 'Not paid', 'error'], ['Pending', 'Pending', 'warning'], ['Paid', 'Paid', 'success']];
+  var st = { tab: 'all', q: '', page: 0, size: 10 };
+
+  function list() {
+    var q = st.q.toLowerCase();
+    return rows.filter(function (r) { return (st.tab === 'all' || r.customs === st.tab) && r.id.toLowerCase().indexOf(q) > -1; });
+  }
+  function renderTabs() {
+    $('#mf-tabs').innerHTML = tabsDef.map(function (t) {
+      var n = t[0] === 'all' ? rows.length : rows.filter(function (r) { return r.customs === t[0]; }).length;
+      var sel = st.tab === t[0];
+      var cls = t[2] === 'filled' ? (sel ? 'filled' : 'default') : t[2];
+      return '<button class="tab" role="tab" type="button" data-key="' + t[0] + '" aria-selected="' + sel + '">' + t[1] + '<span class="label ' + cls + ' num">' + n + '</span></button>';
+    }).join('');
+  }
+  function renderTable() {
+    var l = list(), pages = Math.max(1, Math.ceil(l.length / st.size));
+    if (st.page >= pages) st.page = pages - 1;
+    var start = st.page * st.size, slice = l.slice(start, start + st.size);
+    $('#mf-body').innerHTML = slice.length ? slice.map(function (r) {
+      return '<tr><td class="sub2 num">' + r.id + '</td><td class="veh num">' + r.ind + '</td><td class="veh num">' + r.bd + '</td>' +
+        '<td><span class="label ' + tone[r.customs] + '">' + r.customs + '</span></td><td><span class="label ' + tone[r.bill] + '">' + r.bill + '</span></td>' +
+        '<td><button class="btn text small" type="button" aria-label="View ' + r.id + '">View' + icon('i-chev-r') + '</button></td></tr>';
+    }).join('') : '<tr class="empty-row"><td colspan="6">No manifests match. Clear the filter or choose another status.</td></tr>';
+    $('#pager-info').textContent = l.length ? (start + 1) + '–' + (start + slice.length) + ' of ' + l.length : '0 of 0';
+    $('#pg-prev').disabled = st.page === 0;
+    $('#pg-next').disabled = st.page >= pages - 1;
+  }
+  $('#mf-tabs').addEventListener('click', function (e) { var b = e.target.closest('.tab'); if (!b) return; st.tab = b.dataset.key; st.page = 0; renderTabs(); renderTable(); });
+  function setQ(v) { st.q = v; st.page = 0; renderTable(); }
+  $('#mf-search').addEventListener('input', function (e) { $('#global-search').value = e.target.value; setQ(e.target.value); });
+  $('#global-search').addEventListener('input', function (e) { $('#mf-search').value = e.target.value; setQ(e.target.value); });
+  $('#rows').addEventListener('change', function (e) { st.size = Number(e.target.value); st.page = 0; renderTable(); });
+  $('#pg-prev').addEventListener('click', function () { st.page--; renderTable(); });
+  $('#pg-next').addEventListener('click', function () { st.page++; renderTable(); });
+
+  /* ---------- Alerts timeline ---------- */
+  var alerts = [
+    ['var(--primary)', 'Payment confirmed', 'Nusrat Jahan paid BDT 500.00 on bill BEN-BILL-000220 by mobile banking (gateway ref PG-00141).', 'IGM-2026-00413', '28 Sep 2026, 17:32'],
+    ['var(--warn)', 'Admitted at border gate, no manifest yet', 'Md. Rafiqul Islam admitted truck WB-19-F-8812 at Border gate 1, Lane 1 without a manifest (declared cargo: apple). Sent to management review.', 'WB-19-F-8812', '28 Sep 2026, 17:32'],
+    ['var(--info)', 'Admitted at inland gate', 'Md. Rafiqul Islam admitted export truck JSR-14-T-5521 at the Inland gate (Jashore road), Lane 1.', 'EXP-2026-00077', '28 Sep 2026, 17:32'],
+    ['var(--text-3)', 'Routed', 'Truck TR-05-B-3310 routed: industrial solvent to warehouse.', 'IGM-2026-00413', '28 Sep 2026, 17:32'],
+    ['var(--primary)', 'Payment confirmed', 'Farhana Akter paid BDT 1,250.00 on bill BEN-BILL-000219 in cash at counter 2.', 'IGM-2026-00412', '28 Sep 2026, 16:58']
+  ];
+  $('#timeline').innerHTML = alerts.map(function (a) {
+    return '<li class="tl-item"><span class="tl-dot" style="background:' + a[0] + '"></span><div class="tl-body">' +
+      '<button class="tl-link sub2" type="button">' + a[1] + '</button><p class="body2">' + a[2] + '</p>' +
+      '<p class="caption num">' + a[3] + ' · ' + a[4] + '</p></div></li>';
+  }).join('');
+  $('#timeline').addEventListener('click', function (e) {
+    var b = e.target.closest('.tl-link'); if (!b) return;
+    var ref = b.parentNode.querySelector('.caption').textContent.split(' · ')[0];
+    say('Opening ' + ref + ' is not part of this prototype.');
+  });
+
+  /* ---------- Operations tabs and filters ---------- */
+  var opTabs = ['Operations', 'Performance', 'Revenue', 'Resources', 'Control', 'Reports'], cur = 'Operations';
+  function renderOpTabs() {
+    $('#op-tabs').innerHTML = opTabs.map(function (t) { return '<button class="tab" role="tab" type="button" aria-selected="' + (t === cur) + '">' + t + '</button>'; }).join('');
+    $('#panel-ops').hidden = cur !== 'Operations';
+    $('#panel-other').hidden = cur === 'Operations';
+    $('#other-title').textContent = cur;
+    if (cur === 'Operations') requestAnimationFrame(drawCharts);
+  }
+  $('#op-tabs').addEventListener('click', function (e) { var b = e.target.closest('.tab'); if (!b) return; cur = b.textContent; renderOpTabs(); });
+  function updateSub() { $('#ops-sub').textContent = '2026-09-28 to 2026-10-04 · ' + $('#sel-duration').value + ' days · ' + $('#sel-port').value; }
+  $('#sel-port').addEventListener('change', updateSub);
+  $('#sel-duration').addEventListener('change', updateSub);
+
+  /* ---------- Charts ---------- */
+  var tip = $('#tip');
+  function showTip(title, value, x, y) {
+    tip.innerHTML = '<b>' + title + '</b>' + value; tip.classList.add('on');
+    var w = tip.offsetWidth, h = tip.offsetHeight;
+    tip.style.left = Math.min(Math.max(8, x - w / 2), window.innerWidth - w - 8) + 'px';
+    tip.style.top = Math.max(8, y - h - 12) + 'px';
+  }
+  function hideTip() { tip.classList.remove('on'); }
+
+  function barChart(host, o) {
+    var W = host.clientWidth - 24; if (W <= 0) return;
+    var h = o.h || 280, m = { t: 8, r: 8, b: 32, l: o.left || 40 }, iw = W - m.l - m.r, ih = h - m.t - m.b;
+    var y = function (v) { return m.t + ih - (v / o.max) * ih; };
+    var s = '<svg width="' + W + '" height="' + h + '" role="img" aria-label="' + host.dataset.label + '">';
+    o.ticks.forEach(function (t) { s += '<line class="grid" x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + y(t) + '" y2="' + y(t) + '"/><text class="ax num" x="' + (m.l - 12) + '" y="' + (y(t) + 4) + '" text-anchor="end">' + o.fmt(t) + '</text>'; });
+    var n = o.series.length, gw = iw / o.cats.length, bw = o.bw, gap = 8, gW = n * bw + (n - 1) * gap;
+    o.cats.forEach(function (c, ci) {
+      var x0 = m.l + gw * ci + (gw - gW) / 2;
+      o.series.forEach(function (se, si) {
+        var v = se.values[ci], x = x0 + si * (bw + gap), top = y(v), base = m.t + ih, hh = base - top;
+        if (hh < 0.5) return;
+        var r = Math.min(4, hh, bw / 2);
+        s += '<path class="bar" data-t="' + se.name + (n > 1 ? ' · ' + c : '') + '" data-v="' + se.tip(v) + '" style="fill:' + se.color + '" d="M' + x + ',' + base + 'V' + (top + r) + 'Q' + x + ',' + top + ' ' + (x + r) + ',' + top + 'H' + (x + bw - r) + 'Q' + (x + bw) + ',' + top + ' ' + (x + bw) + ',' + (top + r) + 'V' + base + 'Z"/>';
+      });
+      s += '<text class="ax" x="' + (m.l + gw * ci + gw / 2) + '" y="' + (h - 8) + '" text-anchor="middle">' + c + '</text>';
+    });
+    host.innerHTML = s + '</svg>';
+  }
+  function bindBarTips(host) {
+    host.addEventListener('mousemove', function (e) { var b = e.target.closest('.bar'); if (b) showTip(b.dataset.t, b.dataset.v, e.clientX, e.clientY); else hideTip(); });
+    host.addEventListener('mouseleave', hideTip);
+  }
+
+  // Monotone cubic interpolation so the curve never overshoots below zero or above a peak
+  function monotone(pts) {
+    var n = pts.length, d = [], t = [], i;
+    for (i = 0; i < n - 1; i++) d[i] = (pts[i + 1][1] - pts[i][1]) / (pts[i + 1][0] - pts[i][0]);
+    t[0] = d[0]; t[n - 1] = d[n - 2];
+    for (i = 1; i < n - 1; i++) t[i] = d[i - 1] * d[i] <= 0 ? 0 : (d[i - 1] + d[i]) / 2;
+    for (i = 0; i < n - 1; i++) {
+      if (d[i] === 0) { t[i] = t[i + 1] = 0; continue; }
+      var a = t[i] / d[i], b = t[i + 1] / d[i], sq = a * a + b * b;
+      if (sq > 9) { var k = 3 / Math.sqrt(sq); t[i] = k * a * d[i]; t[i + 1] = k * b * d[i]; }
+    }
+    var path = 'M' + pts[0][0] + ',' + pts[0][1];
+    for (i = 0; i < n - 1; i++) {
+      var h = (pts[i + 1][0] - pts[i][0]) / 3;
+      path += 'C' + (pts[i][0] + h) + ',' + (pts[i][1] + t[i] * h) + ' ' + (pts[i + 1][0] - h) + ',' + (pts[i + 1][1] - t[i + 1] * h) + ' ' + pts[i + 1][0] + ',' + pts[i + 1][1];
+    }
+    return path;
+  }
+
+  var vals = [2, 38, 36, 41, 40, 36, 41, 35, 34, 31, 28, 34, 33, 41, 40, 43, 41, 39, 43, 38, 37, 31, 35, 33, 37];
+  var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  function month(i) { return MONTHS[(8 + i) % 12] + ' ' + (24 + Math.floor((8 + i) / 12)); }
+
+  function lineChart(host) {
+    var W = host.clientWidth - 24; if (W <= 0) return;
+    var h = 300, m = { t: 8, r: 12, b: 32, l: 36 }, iw = W - m.l - m.r, ih = h - m.t - m.b, n = vals.length;
+    var x = function (i) { return m.l + iw * i / (n - 1); }, y = function (v) { return m.t + ih - v / 50 * ih; }, step = iw / (n - 1);
+    var every = W < 520 ? 6 : W < 760 ? 4 : 3;
+    var s = '<svg width="' + W + '" height="' + h + '" role="img" aria-label="' + host.dataset.label + '"><defs><linearGradient id="area-b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--primary);stop-opacity:.24"/><stop offset="1" style="stop-color:var(--primary);stop-opacity:0"/></linearGradient></defs>';
+    [0, 10, 20, 30, 40, 50].forEach(function (t) { s += '<line class="grid" x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + y(t) + '" y2="' + y(t) + '"/><text class="ax num" x="' + (m.l - 12) + '" y="' + (y(t) + 4) + '" text-anchor="end">' + t + '</text>'; });
+    var pts = vals.map(function (v, i) { return [x(i), y(v)]; });
+    var full = pts.slice(0, n - 1), curve = monotone(full);
+    s += '<path d="' + curve + 'L' + full[n - 2][0] + ',' + (m.t + ih) + 'L' + full[0][0] + ',' + (m.t + ih) + 'Z" fill="url(#area-b)"/>';
+    s += '<path d="' + curve + '" fill="none" style="stroke:var(--primary)" stroke-width="3" stroke-linecap="round"/>';
+    s += '<path d="M' + pts[n - 2][0] + ',' + pts[n - 2][1] + 'L' + pts[n - 1][0] + ',' + pts[n - 1][1] + '" fill="none" style="stroke:var(--primary)" stroke-width="3" stroke-dasharray="2 6" stroke-linecap="round"/>';
+    s += '<circle cx="' + pts[n - 1][0] + '" cy="' + pts[n - 1][1] + '" r="5" style="fill:var(--paper);stroke:var(--primary)" stroke-width="2.5"/>';
+    vals.forEach(function (v, i) { if ((n - 1 - i) % every === 0) s += '<text class="ax" x="' + x(i) + '" y="' + (h - 8) + '" text-anchor="' + (i === n - 1 ? 'end' : 'middle') + '">' + month(i) + '</text>'; });
+    s += '<line id="lc-guide" y1="' + m.t + '" y2="' + (m.t + ih) + '" style="stroke:var(--divider-dash)" opacity="0"/><circle id="lc-dot" r="5" opacity="0" style="fill:var(--primary);stroke:var(--paper)" stroke-width="2.5"/>';
+    host.innerHTML = s + '</svg>';
+    var svg = host.firstChild, guide = $('#lc-guide', host), dot = $('#lc-dot', host);
+    function off() { guide.setAttribute('opacity', 0); dot.setAttribute('opacity', 0); hideTip(); }
+    host.onmousemove = function (e) {
+      var r = svg.getBoundingClientRect(), i = Math.round((e.clientX - r.left - m.l) / step);
+      if (i < 0 || i >= n) return off();
+      guide.setAttribute('x1', x(i)); guide.setAttribute('x2', x(i)); guide.setAttribute('opacity', 1);
+      dot.setAttribute('cx', x(i)); dot.setAttribute('cy', y(vals[i])); dot.setAttribute('opacity', 1);
+      showTip(month(i) + (i === n - 1 ? ' (to 28 Sep)' : ''), vals[i] + ' trucks admitted', r.left + x(i), r.top + y(vals[i]));
+    };
+    host.onmouseleave = off;
+  }
+
+  function drawCharts() {
+    if (screens.operations.hidden || $('#panel-ops').hidden) return;
+    var trucks = function (v) { return v + ' trucks'; }, bdt = function (v) { return 'BDT ' + v.toLocaleString('en-US'); };
+    barChart($('#chart-port'), { left: 32, max: 20, ticks: [0, 5, 10, 15, 20], fmt: String, bw: 28, cats: ['Benapole'],
+      series: [{ name: 'Foreign (import)', color: 'var(--primary)', values: [17], tip: trucks }, { name: 'Export', color: 'var(--info)', values: [3], tip: trucks }, { name: 'Local', color: 'var(--warn)', values: [16], tip: trucks }] });
+    barChart($('#chart-money'), { left: 48, max: 2000000, ticks: [0, 500000, 1000000, 1500000, 2000000], bw: 28, cats: ['Benapole'],
+      fmt: function (t) { return t === 0 ? '0' : t >= 1000000 ? (t / 1000000).toFixed(1) + 'M' : t / 1000 + 'k'; },
+      series: [{ name: 'Billed', color: 'var(--info)', values: [1300000], tip: bdt }, { name: 'Counted', color: 'var(--primary)', values: [1240000], tip: bdt }, { name: 'Owed now', color: 'var(--err)', values: [70000], tip: bdt }] });
+    lineChart($('#chart-months'));
+    barChart($('#chart-years'), { left: 36, max: 5000, ticks: [0, 1000, 2000, 3000, 4000, 5000], h: 300, bw: 28, cats: ['2024 (4 mo)', '2025', '2026 (9 mo)'],
+      fmt: function (t) { return t === 0 ? '0' : t / 1000 + 'k'; },
+      series: [{ name: 'Trucks admitted', color: 'var(--primary)', values: [1100, 3900, 3050], tip: function (v) { return v.toLocaleString('en-US') + ' trucks'; } }] });
+  }
+  ['#chart-port', '#chart-money', '#chart-months', '#chart-years'].forEach(function (id) {
+    var host = $(id);
+    if (id !== '#chart-months') bindBarTips(host);
+    if (window.ResizeObserver) new ResizeObserver(function () { requestAnimationFrame(drawCharts); }).observe(host);
+  });
+
+  renderTabs(); renderTable(); renderOpTabs(); showScreen();
+})();
+</script>
