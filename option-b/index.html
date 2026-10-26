@@ -42,9 +42,7 @@
   --grey-16: rgba(145, 158, 171, 0.16);
   --sh-card: 0 0 2px 0 rgba(145, 158, 171, 0.24), 0 16px 32px -4px rgba(145, 158, 171, 0.24);
   --sh-z8: 0 8px 16px 0 rgba(145, 158, 171, 0.24);
-  --sh-z20: 0 20px 40px -4px rgba(145, 158, 171, 0.32);
-  --sh-raised: 0 0 2px 0 rgba(145, 158, 171, 0.32), 0 18px 36px -6px rgba(145, 158, 171, 0.34);
-  --gutter: 40px;
+  --sh-z20: 0 20px 40px -4px rgba(145, 158, 171, 0.32);  --gutter: 40px;
   color-scheme: light;
 }
 *, *::before, *::after { box-sizing: border-box; }
@@ -155,7 +153,7 @@ svg.i { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor;
 /* ---------- Billing screen ---------- */
 .grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
 .kpis { gap: 20px; }
-.kpi { border-radius: 24px; box-shadow: var(--sh-raised); padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.kpi { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
 .kpi-label { color: var(--text-2); font-weight: 500; min-height: 40px; line-height: 20px; }
 .kpi-value { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; font-size: 28px; line-height: 36px; font-weight: 800; letter-spacing: -0.01em; }
 .kpi-value small { font-size: 13px; font-weight: 600; color: var(--text-2); letter-spacing: 0; }
