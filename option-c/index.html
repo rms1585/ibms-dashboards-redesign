@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>html{color-scheme:light}body{margin:0}img{max-width:100%}</style>
+<meta charset="utf-8">
+<title>IBMS Dashboards Option C</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: 72px icon rail (bottom tab bar on phones) + work area. Billing = attention strip, bill statement, manifest list/detail.
+   Operations = port-flow pipeline with exceptions, then breakdowns and trend. Flat white panels on Grey/100 with hairline borders.
+   Light only; IBMS tokens (Public Sans, Forest Green, Grey scale). */
+:root {
+  --font: 'Public Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --page: #F4F5F7;
+  --panel: #FFFFFF;
+  --line: #EAECF0;
+  --line-2: #DFE3E8;
+  --ink: #2B3136;
+  --ink-2: #49525B;
+  --muted: #677481;
+  --faint: #919EAB;
+  --green: #008F40;
+  --green-d: #007A36;
+  --green-t: #00753A;
+  --green-08: rgba(0, 143, 64, 0.08);
+  --green-14: rgba(0, 143, 64, 0.14);
+  --amber: #FFA70F;
+  --amber-t: #945700;
+  --amber-12: rgba(255, 167, 15, 0.14);
+  --red: #FF3030;
+  --red-t: #C80D0D;
+  --red-10: rgba(255, 48, 48, 0.10);
+  --blue: #4166FB;
+  --blue-t: #2A45C8;
+  --blue-10: rgba(65, 102, 251, 0.10);
+  --hover: rgba(145, 158, 171, 0.08);
+  --sh-z1: 0 1px 2px 0 rgba(145, 158, 171, 0.16);
+  --sh-pop: 0 24px 48px -12px rgba(43, 49, 54, 0.24);
+  --rail: 72px;
+  color-scheme: light;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { background: var(--page); color: var(--ink); font: 400 14px/22px var(--font); -webkit-font-smoothing: antialiased; }
+h1, h2, h3, p, ul, dl, dd { margin: 0; }
+ul { padding: 0; list-style: none; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+svg.i { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; border-radius: 6px; }
+.num { font-variant-numeric: tabular-nums; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+[hidden] { display: none !important; }
+.eyebrow { font-size: 11px; line-height: 16px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+.muted { color: var(--muted); }
+
+/* ---------- Rail ---------- */
+.rail {
+  position: fixed; inset: 0 auto 0 0; width: var(--rail); z-index: 30; background: var(--panel); border-right: 1px solid var(--line);
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 0 16px env(safe-area-inset-left, 0px);
+}
+.logo { width: 40px; height: 40px; border-radius: 10px; background: var(--ink); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 13px; margin-bottom: 18px; }
+.rail-btn {
+  position: relative; width: 48px; height: 48px; border-radius: 12px; border: 0; background: none; color: var(--muted);
+  display: grid; place-items: center; transition: background .15s, color .15s;
+}
+.rail-btn:hover { background: var(--hover); color: var(--ink); }
+.rail-btn[aria-current="page"] { background: var(--green-08); color: var(--green-d); }
+.rail-btn .tip-label {
+  position: absolute; left: 58px; top: 50%; transform: translateY(-50%); background: var(--ink); color: #fff; font-size: 12px; font-weight: 600;
+  padding: 4px 8px; border-radius: 6px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .12s;
+}
+.rail-btn:hover .tip-label, .rail-btn:focus-visible .tip-label { opacity: 1; }
+.rail-btn .count { position: absolute; top: 6px; right: 4px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--red); color: #fff; font-size: 11px; font-weight: 700; line-height: 18px; }
+.rail-spacer { flex: 1; }
+.rail-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--green-14); color: var(--green-d); display: grid; place-items: center; font-size: 13px; font-weight: 700; margin-top: 6px; }
+
+/* ---------- Work area ---------- */
+.work {
+  margin-left: var(--rail);
+  padding-left: max(32px, env(safe-area-inset-left, 0px)); padding-right: max(32px, env(safe-area-inset-right, 0px));
+  padding-block: 24px 48px;
+}
+.wrap { max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.crumb { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+.crumb .sep { color: var(--line-2); }
+.demo { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--blue-t); background: var(--blue-10); padding: 2px 6px; border-radius: 4px; }
+.command { display: flex; align-items: center; gap: 10px; height: 40px; width: min(100%, 420px); padding: 0 8px 0 12px; border: 1px solid var(--line-2); border-radius: 10px; background: var(--panel); color: var(--faint); }
+.command:focus-within { border-color: var(--ink); }
+.command input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; color: var(--ink); }
+.command input::placeholder { color: var(--faint); }
+.command kbd { font: 600 11px var(--font); color: var(--muted); border: 1px solid var(--line-2); border-radius: 5px; padding: 1px 6px; }
+.title-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+h1 { font-size: 28px; line-height: 36px; font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }
+.title-row p { color: var(--muted); }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--sh-z1); min-width: 0; }
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.panel-head h2 { font-size: 15px; line-height: 22px; font-weight: 700; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--line-2); background: var(--panel); font-weight: 600; font-size: 13px; white-space: nowrap; transition: background .15s, border-color .15s; }
+.btn:hover { background: var(--hover); border-color: var(--faint); }
+.btn svg.i { width: 16px; height: 16px; }
+.btn.primary { background: var(--green-d); border-color: var(--green-d); color: #fff; }
+.btn.primary:hover { background: #006A2E; }
+.btn.link { border: 0; padding: 0 4px; height: 28px; color: var(--green-t); background: none; }
+.btn.link:hover { text-decoration: underline; background: none; }
+.btn:disabled { color: var(--faint); cursor: not-allowed; background: var(--panel); border-color: var(--line); }
+.seg { display: inline-flex; padding: 3px; background: var(--page); border: 1px solid var(--line); border-radius: 10px; }
+.seg button { height: 30px; padding: 0 12px; border: 0; border-radius: 7px; background: none; color: var(--muted); font-weight: 600; font-size: 13px; }
+.seg button[aria-pressed="true"] { background: var(--panel); color: var(--ink); box-shadow: var(--sh-z1); }
+.status { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.status i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.s-red { color: var(--red-t); } .s-red i { background: var(--red); }
+.s-amber { color: var(--amber-t); } .s-amber i { background: var(--amber); }
+.s-green { color: var(--green-t); } .s-green i { background: var(--green); }
+.s-blue { color: var(--blue-t); } .s-blue i { background: var(--blue); }
+
+/* ---------- Billing: attention strip ---------- */
+.attention { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.att { padding: 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); box-shadow: var(--sh-z1); }
+.att-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.att-body .status { font-size: 12px; margin-bottom: 4px; }
+.att-body b { font-size: 20px; line-height: 28px; font-weight: 700; }
+.att-body span { color: var(--muted); }
+.att .btn.link { align-self: flex-start; margin-top: 4px; margin-left: -4px; }
+
+/* ---------- Billing: statement ---------- */
+.statement { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+.stmt-total { padding: 24px; border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+.stmt-total .big { font-size: 40px; line-height: 48px; font-weight: 700; letter-spacing: -0.02em; }
+.stmt-total .big small { font-size: 16px; font-weight: 600; color: var(--faint); letter-spacing: 0; margin-left: 6px; }
+.stmt-meta { display: flex; gap: 24px; margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line-2); flex-wrap: wrap; }
+.stmt-meta div { display: flex; flex-direction: column; }
+.stmt-meta b { font-size: 18px; line-height: 26px; font-weight: 700; }
+.stmt-lines { padding: 12px 24px; }
+.stmt-line { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.stmt-line:last-child { border-bottom: 0; }
+.stmt-line dt { color: var(--ink-2); display: flex; align-items: center; gap: 10px; }
+.stmt-line dd { font-size: 18px; line-height: 26px; font-weight: 600; text-align: right; }
+.stmt-line dd small { font-size: 12px; color: var(--faint); font-weight: 600; margin-left: 4px; }
+.stmt-line.overdue dd { color: var(--red-t); }
+
+/* ---------- Billing: manifest list / detail ---------- */
+.md { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+.md-list { border-right: 1px solid var(--line); min-width: 0; }
+.filters { display: flex; gap: 6px; padding: 12px 20px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.chip { height: 30px; padding: 0 12px; border-radius: 15px; border: 1px solid var(--line-2); background: var(--panel); color: var(--muted); font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
+.chip:hover { border-color: var(--faint); color: var(--ink); }
+.chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+.chip .n { font-weight: 500; opacity: .7; }
+.rows { max-height: 528px; overflow-y: auto; }
+.row {
+  display: grid; grid-template-columns: minmax(130px, 1.4fr) 64px minmax(110px, 1fr) minmax(130px, 1.2fr); gap: 12px; align-items: center;
+  width: 100%; min-height: 52px; padding: 8px 20px; border: 0; border-bottom: 1px solid var(--line); background: none; text-align: left;
+}
+.row:hover { background: var(--hover); }
+.row[aria-selected="true"] { background: var(--green-08); }
+.row-head { min-height: 40px; font-size: 12px; font-weight: 600; color: var(--muted); background: var(--page); cursor: default; position: sticky; top: 0; z-index: 1; }
+.row-head:hover { background: var(--page); }
+.row .id { font-weight: 600; }
+.row .veh { color: var(--muted); }
+.list-foot { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; color: var(--muted); font-size: 13px; gap: 12px; flex-wrap: wrap; }
+.list-foot .pg { display: flex; gap: 6px; }
+.list-foot .btn { width: 34px; padding: 0; }
+.empty { padding: 48px 20px; text-align: center; color: var(--muted); }
+
+.detail { padding: 24px; display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.detail h3 { font-size: 22px; line-height: 30px; font-weight: 700; }
+.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.facts div { background: var(--panel); padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.facts b { font-size: 18px; line-height: 26px; font-weight: 600; }
+.next { border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.next.red { background: var(--red-10); } .next.amber { background: var(--amber-12); } .next.green { background: var(--green-08); } .next.blue { background: var(--blue-10); }
+.next p { color: var(--ink-2); }
+.next .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ---------- Operations: pipeline ---------- */
+.flow { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.stage { position: relative; padding: 20px 28px 22px 20px; display: flex; flex-direction: column; gap: 4px; border-right: 1px solid var(--line); min-width: 0; }
+.stage:last-child { border-right: 0; }
+.stage:not(:last-child)::after {
+  content: ""; position: absolute; right: -9px; top: 50%; width: 16px; height: 16px; margin-top: -8px; background: var(--panel);
+  border-top: 1px solid var(--line); border-right: 1px solid var(--line); transform: rotate(45deg); z-index: 1;
+}
+.stage .big { font-size: 40px; line-height: 48px; font-weight: 700; letter-spacing: -0.02em; margin-top: 6px; }
+.stage .sub { font-size: 13px; line-height: 20px; color: var(--muted); }
+.delta { color: var(--red-t); font-weight: 600; }
+.stage.current { background: var(--green-08); }
+.stage.current .big { color: var(--green-t); }
+.exceptions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--line); }
+.exc { padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-right: 1px solid var(--line); }
+.exc:last-child { border-right: 0; }
+.exc b { font-size: 18px; line-height: 26px; font-weight: 700; white-space: nowrap; }
+.exc.warn b { color: var(--amber-t); }
+.exc.warn { background: var(--amber-12); }
+.ops-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 20px; align-items: start; }
+.ops-left { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.hbars { padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 14px; }
+.hbar { display: grid; grid-template-columns: 110px minmax(0, 1fr) 84px; gap: 12px; align-items: center; }
+.hbar span { color: var(--ink-2); }
+.hbar .track { height: 10px; border-radius: 5px; background: var(--page); overflow: hidden; }
+.hbar .fill { height: 100%; border-radius: 5px; }
+.hbar b { text-align: right; font-weight: 600; }
+.note { padding: 0 20px 16px; font-size: 12px; line-height: 18px; color: var(--faint); }
+.plot { position: relative; padding: 16px 12px 8px 4px; }
+.plot svg { display: block; overflow: visible; }
+.ax { fill: var(--faint); font: 400 12px var(--font); }
+.gridline { stroke: var(--line-2); stroke-dasharray: 2 4; }
+.tabs-row { display: flex; gap: 4px; flex-wrap: wrap; }
+.tabs-row button { height: 32px; padding: 0 12px; border-radius: 8px; border: 0; background: none; color: var(--muted); font-weight: 600; }
+.tabs-row button:hover { background: var(--hover); color: var(--ink); }
+.tabs-row button[aria-selected="true"] { background: var(--ink); color: #fff; }
+.placeholder { padding: 64px 24px; text-align: center; color: var(--muted); }
+
+/* ---------- Drawer, tooltip, toast ---------- */
+.scrim { position: fixed; inset: 0; z-index: 40; background: rgba(43, 49, 54, .32); }
+.drawer {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 41; width: min(420px, 100vw); background: var(--panel); box-shadow: var(--sh-pop);
+  display: flex; flex-direction: column; padding-top: env(safe-area-inset-top, 0px); padding-right: env(safe-area-inset-right, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.drawer-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--line); }
+.drawer-head h2 { font-size: 16px; line-height: 24px; font-weight: 700; }
+.icon-btn { width: 36px; height: 36px; border-radius: 8px; border: 0; background: none; color: var(--muted); display: grid; place-items: center; }
+.icon-btn:hover { background: var(--hover); color: var(--ink); }
+.feed { overflow-y: auto; flex: 1; }
+.feed li { padding: 16px 20px; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+.feed .meta { font-size: 12px; line-height: 18px; color: var(--faint); }
+.feed p { color: var(--ink-2); }
+.tip { position: fixed; z-index: 50; pointer-events: none; background: var(--ink); color: #fff; border-radius: 6px; padding: 6px 10px; font-size: 12px; line-height: 18px; opacity: 0; transition: opacity .1s; }
+.tip.on { opacity: 1; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); z-index: 60; background: var(--ink); color: #fff; padding: 10px 16px; border-radius: 8px; box-shadow: var(--sh-pop); font-weight: 500; max-width: calc(100vw - 32px); }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1100px) {
+  .ops-grid, .md { grid-template-columns: minmax(0, 1fr); }
+  .md-list { border-right: 0; border-bottom: 1px solid var(--line); }
+  .flow { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .stage:nth-child(3) { border-right: 0; }
+  .stage:nth-child(3)::after { display: none; }
+  .stage:nth-child(n+4) { border-top: 1px solid var(--line); }
+  .exceptions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .exc:nth-child(2) { border-right: 0; }
+  .exc:nth-child(n+3) { border-top: 1px solid var(--line); }
+}
+@media (max-width: 860px) {
+  .attention { grid-template-columns: minmax(0, 1fr); }
+  .statement { grid-template-columns: minmax(0, 1fr); }
+  .stmt-total { border-right: 0; border-bottom: 1px solid var(--line); }
+}
+@media (max-width: 720px) {
+  :root { --rail: 0px; }
+  .rail {
+    inset: auto 0 0 0; width: auto; height: auto; flex-direction: row; justify-content: space-around; border-right: 0; border-top: 1px solid var(--line);
+    padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
+  }
+  .logo, .rail-spacer, .rail-avatar, .rail-btn .tip-label { display: none; }
+  .work { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-bottom: 96px; }
+  .flow { grid-template-columns: minmax(0, 1fr); }
+  .stage { border-right: 0; border-top: 1px solid var(--line); }
+  .stage:first-child { border-top: 0; }
+  .stage::after { display: none !important; }
+  .exceptions { grid-template-columns: minmax(0, 1fr); }
+  .exc { border-right: 0 !important; }
+  .exc:nth-child(n+2) { border-top: 1px solid var(--line); }
+  .row { grid-template-columns: minmax(0, 1fr) auto; }
+  .row .veh, .row-head .veh, .row .bill, .row-head .bill { display: none; }
+  .toast { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-bill" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/></symbol>
+    <symbol id="i-flow" viewBox="0 0 24 24"><rect x="3" y="4" width="6" height="6" rx="1.5"/><rect x="15" y="4" width="6" height="6" rx="1.5"/><rect x="9" y="14" width="6" height="6" rx="1.5"/><path d="M9 7h6M18 10v2a2 2 0 0 1-2 2h-1M6 10v2a2 2 0 0 0 2 2h1"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2.5"/><path d="m16 10.5 5-3v9l-5-3z"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10.3 20a2 2 0 0 0 3.4 0"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-chev-l" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol>
+    <symbol id="i-chev-r" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 11 5 5 5-5"/><path d="M5 20h14"/></symbol>
+  </defs>
+</svg>
+
+<nav class="rail" aria-label="Main">
+  <span class="logo" aria-hidden="true">IB</span>
+  <button class="rail-btn" type="button" data-screen="billing" aria-label="Billing" aria-current="page"><svg class="i"><use href="#i-bill"/></svg><span class="tip-label">Billing</span></button>
+  <button class="rail-btn" type="button" data-screen="operations" aria-label="Operations"><svg class="i"><use href="#i-flow"/></svg><span class="tip-label">Operations</span></button>
+  <button class="rail-btn" type="button" data-soon="Manifest history" aria-label="Manifest history"><svg class="i"><use href="#i-doc"/></svg><span class="tip-label">Manifest history</span></button>
+  <button class="rail-btn" type="button" data-soon="Live cameras" aria-label="Live cameras"><svg class="i"><use href="#i-camera"/></svg><span class="tip-label">Live cameras</span></button>
+  <span class="rail-spacer"></span>
+  <button class="rail-btn" type="button" id="open-alerts" aria-label="Alerts, 13 new" aria-controls="drawer" aria-expanded="false"><svg class="i"><use href="#i-bell"/></svg><span class="count num" aria-hidden="true">13</span><span class="tip-label">Alerts</span></button>
+  <span class="rail-avatar" title="Arifur Rahman · Weighbridge" aria-label="Arifur Rahman, Weighbridge">AR</span>
+</nav>
+
+<div class="work">
+  <div class="wrap">
+    <div class="topbar">
+      <p class="crumb"><b style="color:var(--ink)">IBMS</b><span class="sep">/</span>C&amp;F portal<span class="sep">/</span>Benapole <span class="demo">Demo</span></p>
+      <label class="command">
+        <svg class="i"><use href="#i-search"/></svg><span class="sr">Find a manifest</span>
+        <input id="find" type="search" placeholder="Find a manifest number" autocomplete="off"><kbd>⌘K</kbd>
+      </label>
+    </div>
+
+    <!-- ================= Billing ================= -->
+    <main id="screen-billing" class="wrap" style="max-width:none" aria-labelledby="h-billing">
+      <div class="title-row">
+        <div><h1 id="h-billing">Billing</h1><p>Today at a glance · 16 July 2026</p></div>
+        <button class="btn" type="button"><svg class="i"><use href="#i-download"/></svg>Export statement</button>
+      </div>
+
+      <section class="attention" aria-label="Needs attention">
+        <article class="att"><div class="att-body"><span class="status s-red"><i></i>Customs</span><b class="num" id="att-notpaid">36 manifests</b><span>not paid at customs</span><button class="btn link" type="button" data-filter="Not paid">Show them</button></div></article>
+        <article class="att"><div class="att-body"><span class="status s-red"><i></i>Land port bills</span><b class="num">80,000 BDT</b><span>overdue on land port bills</span><button class="btn link" type="button" data-soon="Overdue bills">See overdue bills</button></div></article>
+        <article class="att"><div class="att-body"><span class="status s-amber"><i></i>Border gate</span><b class="num">1 truck</b><span>admitted without a manifest</span><button class="btn link" type="button" data-open-alerts>Review in alerts</button></div></article>
+      </section>
+
+      <section class="panel statement" aria-label="Billing statement">
+        <div class="stmt-total">
+          <span class="eyebrow">Total dues</span>
+          <span class="big num">64,309.00<small>BDT</small></span>
+          <span class="muted">Across 30 of 100 active manifests</span>
+          <div class="stmt-meta">
+            <div><span class="eyebrow">Trucks in port</span><b class="num">36</b></div>
+            <div><span class="eyebrow">Active manifests</span><b class="num">100</b></div>
+            <div><span class="eyebrow">Unread alerts</span><b class="num">0</b></div>
+          </div>
+        </div>
+        <dl class="stmt-lines">
+          <div class="stmt-line"><dt><span class="status s-green"><i></i></span>Total billed</dt><dd class="num">1,24,500<small>BDT</small></dd></div>
+          <div class="stmt-line"><dt><span class="status s-amber"><i></i></span>Payment dues</dt><dd class="num">50,000<small>BDT</small></dd></div>
+          <div class="stmt-line"><dt><span class="status s-blue"><i></i></span>Paid</dt><dd class="num">6,32,900<small>BDT</small></dd></div>
+          <div class="stmt-line overdue"><dt><span class="status s-red"><i></i></span>Overdue</dt><dd class="num">80,000<small>BDT</small></dd></div>
+        </dl>
+      </section>
+
+      <section class="panel" aria-labelledby="h-mf">
+        <div class="panel-head"><h2 id="h-mf">Manifests</h2><span class="muted" style="font-size:13px">Select one to see what it needs next</span></div>
+        <div class="md">
+          <div class="md-list">
+            <div class="filters" id="filters" role="group" aria-label="Filter by customs status"></div>
+            <div class="rows" id="rows" role="listbox" aria-label="Manifests"></div>
+            <div class="list-foot">
+              <span id="list-info" class="num"></span>
+              <span class="pg">
+                <button class="btn" id="prev" type="button" aria-label="Previous page"><svg class="i"><use href="#i-chev-l"/></svg></button>
+                <button class="btn" id="next" type="button" aria-label="Next page"><svg class="i"><use href="#i-chev-r"/></svg></button>
+              </span>
+            </div>
+          </div>
+          <div class="detail" id="detail" aria-live="polite"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ================= Operations ================= -->
+    <main id="screen-operations" class="wrap" style="max-width:none" aria-labelledby="h-ops" hidden>
+      <div class="title-row">
+        <div><h1 id="h-ops">Operations</h1><p class="num" id="ops-sub">2026-09-28 to 2026-10-04 · Benapole</p></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <div class="seg" role="group" aria-label="Period" id="period">
+            <button type="button" data-d="Today">Today</button><button type="button" data-d="7 days" aria-pressed="true">7 days</button><button type="button" data-d="30 days">30 days</button>
+          </div>
+          <button class="btn" type="button"><svg class="i"><use href="#i-download"/></svg>Export</button>
+        </div>
+      </div>
+      <div class="tabs-row" role="tablist" aria-label="Sections" id="op-tabs"></div>
+
+      <div id="ops-panel" class="wrap" style="max-width:none">
+        <section class="panel" aria-labelledby="h-flow">
+          <div class="panel-head"><h2 id="h-flow">Port flow, over today</h2><span class="status s-green" style="font-size:12px"><i></i>Live</span></div>
+          <div class="flow">
+            <div class="stage"><span class="eyebrow">Expected</span><span class="big num">5</span><span class="sub">Arrivals due today</span></div>
+            <div class="stage"><span class="eyebrow">Admitted</span><span class="big num">59</span><span class="sub num"><span class="delta">▼ 33.7%</span> vs 89 the period before</span></div>
+            <div class="stage current"><span class="eyebrow">In port now</span><span class="big num">36</span><span class="sub">Inside the port right now</span></div>
+            <div class="stage"><span class="eyebrow">Waiting for pass</span><span class="big num">1</span><span class="sub">Loaded, pass not issued</span></div>
+            <div class="stage"><span class="eyebrow">Left</span><span class="big num">26</span><span class="sub num"><span class="delta">▼ 74.3%</span> vs 101 the period before</span></div>
+          </div>
+          <div class="exceptions">
+            <div class="exc warn"><span>Oldest wait at a checkpoint</span><b class="num">143 h 47 min</b></div>
+            <div class="exc warn"><span>Admitted without manifest</span><b class="num">1</b></div>
+            <div class="exc"><span>Customs holds</span><b class="num">0</b></div>
+            <div class="exc"><span>Open holds</span><b class="num">0</b></div>
+          </div>
+        </section>
+
+        <div class="ops-grid">
+          <div class="ops-left">
+            <section class="panel" aria-labelledby="h-inside">
+              <div class="panel-head"><h2 id="h-inside">Trucks inside, by type</h2><span class="muted" style="font-size:13px">Benapole, right now</span></div>
+              <div class="hbars" id="bars-inside"></div>
+            </section>
+            <section class="panel" aria-labelledby="h-money">
+              <div class="panel-head"><h2 id="h-money">Money on open bills</h2><span class="muted" style="font-size:13px">BDT, right now</span></div>
+              <div class="hbars" id="bars-money"></div>
+              <p class="note">Counted = cash, online and cleared cheques.</p>
+            </section>
+          </div>
+          <section class="panel" aria-labelledby="h-trend">
+            <div class="panel-head">
+              <div><h2 id="h-trend">Trucks admitted</h2><span class="muted" style="font-size:13px" id="trend-sub">24 months to 2026-09-28</span></div>
+              <div class="seg" role="group" aria-label="Trend view" id="trend-view"><button type="button" data-v="month" aria-pressed="true">Monthly</button><button type="button" data-v="year">Yearly</button></div>
+            </div>
+            <div class="plot" id="trend" data-label="Trucks admitted over time"></div>
+          </section>
+        </div>
+      </div>
+      <section id="other-panel" class="panel placeholder" hidden><b id="other-title" style="color:var(--ink)">Performance</b><p>This section isn't part of the prototype.</p></section>
+    </main>
+  </div>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" aria-labelledby="h-alerts" hidden>
+  <div class="drawer-head"><div><h2 id="h-alerts">Alerts</h2><span class="muted" style="font-size:13px">60 total, newest first</span></div><button class="icon-btn" id="close-alerts" type="button" aria-label="Close alerts"><svg class="i"><use href="#i-x"/></svg></button></div>
+  <ul class="feed" id="feed"></ul>
+</aside>
+<div class="tip" id="tip" role="presentation"></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(function () {
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+
+  var toast = $('#toast'), tt;
+  function say(m) { toast.textContent = m; toast.hidden = false; clearTimeout(tt); tt = setTimeout(function () { toast.hidden = true; }, 2400); }
+  document.addEventListener('click', function (e) { var b = e.target.closest('[data-soon]'); if (b) say(b.dataset.soon + ' is not part of this prototype.'); });
+
+  /* ---------- Screens ---------- */
+  var screens = { billing: $('#screen-billing'), operations: $('#screen-operations') };
+  function show(key) {
+    Object.keys(screens).forEach(function (k) { screens[k].hidden = k !== key; });
+    $$('.rail-btn[data-screen]').forEach(function (b) { if (b.dataset.screen === key) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+    if (location.hash !== '#' + key) history.replaceState(null, '', '#' + key);
+    window.scrollTo(0, 0);
+    requestAnimationFrame(drawTrend);
+  }
+  $$('.rail-btn[data-screen]').forEach(function (b) { b.addEventListener('click', function () { show(b.dataset.screen); }); });
+
+  /* ---------- Alerts drawer ---------- */
+  var drawer = $('#drawer'), scrim = $('#scrim'), opener = $('#open-alerts');
+  function setDrawer(open) { drawer.hidden = !open; scrim.hidden = !open; opener.setAttribute('aria-expanded', String(open)); if (open) $('#close-alerts').focus(); else opener.focus(); }
+  opener.addEventListener('click', function () { setDrawer(true); });
+  $$('[data-open-alerts]').forEach(function (b) { b.addEventListener('click', function () { setDrawer(true); }); });
+  $('#close-alerts').addEventListener('click', function () { setDrawer(false); });
+  scrim.addEventListener('click', function () { setDrawer(false); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !drawer.hidden) setDrawer(false);
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); show('billing'); $('#find').focus(); }
+  });
+  var alerts = [
+    ['s-green', 'Payment confirmed', 'Nusrat Jahan paid BDT 500.00 on bill BEN-BILL-000220 by mobile banking (gateway ref PG-00141).', 'IGM-2026-00413 · 28 Sep 2026, 17:32'],
+    ['s-amber', 'Admitted at border gate, no manifest yet', 'Md. Rafiqul Islam admitted truck WB-19-F-8812 at Border gate 1, Lane 1 without a manifest (declared cargo: apple). Sent to management review.', 'WB-19-F-8812 · 28 Sep 2026, 17:32'],
+    ['s-blue', 'Admitted at inland gate', 'Md. Rafiqul Islam admitted export truck JSR-14-T-5521 at the Inland gate (Jashore road), Lane 1.', 'EXP-2026-00077 · 28 Sep 2026, 17:32'],
+    ['s-green', 'Routed', 'Truck TR-05-B-3310 routed: industrial solvent to warehouse.', 'IGM-2026-00413 · 28 Sep 2026, 17:32'],
+    ['s-green', 'Payment confirmed', 'Farhana Akter paid BDT 1,250.00 on bill BEN-BILL-000219 in cash at counter 2.', 'IGM-2026-00412 · 28 Sep 2026, 16:58']
+  ];
+  $('#feed').innerHTML = alerts.map(function (a) {
+    return '<li><span class="status ' + a[0] + '"><i></i>' + a[1] + '</span><p>' + a[2] + '</p><span class="meta num">' + a[3] + '</span></li>';
+  }).join('');
+
+  /* ---------- Manifests: list + detail ---------- */
+  var patterns = [
+    ['-', '-', 'Not paid', 'Not paid'], ['-', '-', 'Not paid', 'Not paid'], ['-', '-', 'Not paid', 'Not paid'], ['-', '-', 'Not paid', 'Not paid'],
+    ['5', '6', 'Pending', 'Paid, not exited'], ['2', '3', 'Pending', 'Pending'], ['4', '6', 'Paid', 'Fully paid'], ['1', '3', 'Paid', 'Paid, not exited'],
+    ['5', '5', 'Paid', 'Paid, not exited'], ['3', '7', 'Pending', 'Pending'], ['3', '4', 'Pending', 'Fully paid'], ['2', '2', 'Paid', 'Fully paid']
+  ];
+  var rows = [];
+  for (var i = 0; i < 100; i++) { var p = patterns[i % 12]; rows.push({ id: 'MNF-00078-' + String(988 - i).padStart(4, '0'), ind: p[0], bd: p[1], customs: p[2], bill: p[3] }); }
+  var cls = { 'Not paid': 's-red', 'Pending': 's-amber', 'Paid': 's-green', 'Paid, not exited': 's-blue', 'Fully paid': 's-green' };
+  var st = { filter: 'All', q: '', page: 0, size: 10, sel: rows[0].id };
+  var filters = ['All', 'Not paid', 'Pending', 'Paid'];
+  function count(f) { return f === 'All' ? rows.length : rows.filter(function (r) { return r.customs === f; }).length; }
+  $('#att-notpaid').textContent = count('Not paid') + ' manifests';
+
+  function list() { var q = st.q.toLowerCase(); return rows.filter(function (r) { return (st.filter === 'All' || r.customs === st.filter) && r.id.toLowerCase().indexOf(q) > -1; }); }
+  function stat(s) { return '<span class="status ' + cls[s] + '"><i></i>' + s + '</span>'; }
+  function renderFilters() {
+    $('#filters').innerHTML = filters.map(function (f) { return '<button class="chip" type="button" data-f="' + f + '" aria-pressed="' + (st.filter === f) + '">' + f + '<span class="n num">' + count(f) + '</span></button>'; }).join('');
+  }
+  function renderRows() {
+    var l = list(), pages = Math.max(1, Math.ceil(l.length / st.size));
+    if (st.page >= pages) st.page = pages - 1;
+    var start = st.page * st.size, slice = l.slice(start, start + st.size);
+    var head = '<div class="row row-head" aria-hidden="true"><span>Manifest no.</span><span class="veh">IN / BD</span><span>Customs</span><span class="bill">Land port bill</span></div>';
+    $('#rows').innerHTML = head + (slice.length ? slice.map(function (r) {
+      return '<button class="row" type="button" role="option" data-id="' + r.id + '" aria-selected="' + (r.id === st.sel) + '"><span class="id num">' + r.id + '</span><span class="veh num">' + r.ind + ' / ' + r.bd + '</span>' + stat(r.customs) + '<span class="bill">' + stat(r.bill) + '</span></button>';
+    }).join('') : '<p class="empty">No manifests match. Clear the search or choose another filter.</p>');
+    $('#list-info').textContent = l.length ? (start + 1) + '–' + (start + slice.length) + ' of ' + l.length : '0 of 0';
+    $('#prev').disabled = st.page === 0; $('#next').disabled = st.page >= pages - 1;
+  }
+  function nextStep(r) {
+    if (r.customs === 'Not paid') return ['red', 'Customs payment is outstanding. The truck can’t move on until customs is paid.', 'Record customs payment'];
+    if (r.customs === 'Pending') return ['amber', 'A customs payment is waiting for confirmation from the gateway.', 'Check payment status'];
+    if (r.bill === 'Paid, not exited') return ['blue', 'All bills are paid, but the truck hasn’t exited the port yet.', 'Issue exit pass'];
+    if (r.bill === 'Pending') return ['amber', 'Customs is paid. The land port bill is still pending.', 'Collect land port bill'];
+    return ['green', 'Customs and land port bills are settled. Nothing left to do.', null];
+  }
+  function renderDetail() {
+    var r = rows.find(function (x) { return x.id === st.sel; });
+    if (!r) { $('#detail').innerHTML = '<p class="empty">Select a manifest to see its details.</p>'; return; }
+    var n = nextStep(r);
+    $('#detail').innerHTML = '<div><span class="eyebrow">Manifest</span><h3 class="num">' + r.id + '</h3></div>' +
+      '<div class="facts"><div><span class="eyebrow">Indian vehicles</span><b class="num">' + r.ind + '</b></div><div><span class="eyebrow">BD vehicles</span><b class="num">' + r.bd + '</b></div>' +
+      '<div><span class="eyebrow">Customs</span>' + stat(r.customs) + '</div><div><span class="eyebrow">Land port bill</span>' + stat(r.bill) + '</div></div>' +
+      '<div class="next ' + n[0] + '"><span class="eyebrow" style="color:var(--ink-2)">Next step</span><p>' + n[1] + '</p>' +
+      '<div class="actions">' + (n[2] ? '<button class="btn primary" type="button" data-soon="' + n[2] + '">' + n[2] + '</button>' : '') + '<button class="btn" type="button" data-soon="Opening a manifest">Open manifest</button></div></div>';
+  }
+  $('#filters').addEventListener('click', function (e) { var b = e.target.closest('.chip'); if (!b) return; st.filter = b.dataset.f; st.page = 0; renderFilters(); renderRows(); });
+  $$('[data-filter]').forEach(function (b) { b.addEventListener('click', function () { st.filter = b.dataset.filter; st.page = 0; renderFilters(); renderRows(); $('#h-mf').scrollIntoView({ behavior: 'smooth', block: 'start' }); }); });
+  $('#rows').addEventListener('click', function (e) { var b = e.target.closest('.row[data-id]'); if (!b) return; st.sel = b.dataset.id; renderRows(); renderDetail(); });
+  $('#find').addEventListener('input', function (e) { st.q = e.target.value; st.page = 0; renderRows(); });
+  $('#prev').addEventListener('click', function () { st.page--; renderRows(); });
+  $('#next').addEventListener('click', function () { st.page++; renderRows(); });
+
+  /* ---------- Operations ---------- */
+  var opTabs = ['Operations', 'Performance', 'Revenue', 'Resources', 'Control', 'Reports'], cur = 'Operations';
+  function renderTabs() {
+    $('#op-tabs').innerHTML = opTabs.map(function (t) { return '<button type="button" role="tab" aria-selected="' + (t === cur) + '">' + t + '</button>'; }).join('');
+    $('#ops-panel').hidden = cur !== 'Operations'; $('#other-panel').hidden = cur === 'Operations'; $('#other-title').textContent = cur;
+    if (cur === 'Operations') requestAnimationFrame(drawTrend);
+  }
+  $('#op-tabs').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; cur = b.textContent; renderTabs(); });
+  $('#period').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    $$('#period button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+    $('#ops-sub').textContent = (b.dataset.d === 'Today' ? '2026-10-04' : '2026-09-28 to 2026-10-04') + ' · Benapole';
+  });
+
+  function hbars(host, items, fmt) {
+    var max = Math.max.apply(null, items.map(function (i) { return i[1]; }));
+    host.innerHTML = items.map(function (i) {
+      return '<div class="hbar"><span>' + i[0] + '</span><span class="track"><span class="fill" style="display:block;width:' + (i[1] / max * 100).toFixed(1) + '%;background:' + i[2] + '"></span></span><b class="num">' + fmt(i[1]) + '</b></div>';
+    }).join('');
+  }
+  hbars($('#bars-inside'), [['Foreign (import)', 17, 'var(--green)'], ['Local', 16, 'var(--amber)'], ['Export', 3, 'var(--blue)']], String);
+  hbars($('#bars-money'), [['Billed', 1300000, 'var(--blue)'], ['Counted', 1240000, 'var(--green)'], ['Owed now', 70000, 'var(--red)']], function (v) { return v >= 1000000 ? (v / 1000000).toFixed(2) + 'M' : (v / 1000) + 'k'; });
+
+  var tip = $('#tip');
+  function showTip(t, x, y) { tip.textContent = t; tip.classList.add('on'); var w = tip.offsetWidth; tip.style.left = Math.min(Math.max(8, x - w / 2), innerWidth - w - 8) + 'px'; tip.style.top = Math.max(8, y - tip.offsetHeight - 12) + 'px'; }
+  function hideTip() { tip.classList.remove('on'); }
+
+  var vals = [2, 38, 36, 41, 40, 36, 41, 35, 34, 31, 28, 34, 33, 41, 40, 43, 41, 39, 43, 38, 37, 31, 35, 33, 37];
+  var MN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  function month(i) { return MN[(8 + i) % 12] + ' ' + (24 + Math.floor((8 + i) / 12)); }
+  var view = 'month';
+  $('#trend-view').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return; view = b.dataset.v;
+    $$('#trend-view button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+    $('#trend-sub').textContent = view === 'month' ? '24 months to 2026-09-28' : 'Whole calendar years';
+    drawTrend();
+  });
+
+  function monotone(pts) {
+    var n = pts.length, d = [], t = [], i;
+    for (i = 0; i < n - 1; i++) d[i] = (pts[i + 1][1] - pts[i][1]) / (pts[i + 1][0] - pts[i][0]);
+    t[0] = d[0]; t[n - 1] = d[n - 2];
+    for (i = 1; i < n - 1; i++) t[i] = d[i - 1] * d[i] <= 0 ? 0 : (d[i - 1] + d[i]) / 2;
+    for (i = 0; i < n - 1; i++) { if (d[i] === 0) { t[i] = t[i + 1] = 0; continue; } var a = t[i] / d[i], b = t[i + 1] / d[i], s = a * a + b * b; if (s > 9) { var k = 3 / Math.sqrt(s); t[i] = k * a * d[i]; t[i + 1] = k * b * d[i]; } }
+    var path = 'M' + pts[0][0] + ',' + pts[0][1];
+    for (i = 0; i < n - 1; i++) { var h = (pts[i + 1][0] - pts[i][0]) / 3; path += 'C' + (pts[i][0] + h) + ',' + (pts[i][1] + t[i] * h) + ' ' + (pts[i + 1][0] - h) + ',' + (pts[i + 1][1] - t[i + 1] * h) + ' ' + pts[i + 1][0] + ',' + pts[i + 1][1]; }
+    return path;
+  }
+
+  function drawTrend() {
+    var host = $('#trend'); if (screens.operations.hidden || $('#ops-panel').hidden) return;
+    var W = host.clientWidth - 16; if (W <= 0) return;
+    var H = 320, m = { t: 8, r: 12, b: 32, l: 40 }, iw = W - m.l - m.r, ih = H - m.t - m.b, s;
+    if (view === 'month') {
+      var n = vals.length, x = function (i) { return m.l + iw * i / (n - 1); }, y = function (v) { return m.t + ih - v / 50 * ih; }, step = iw / (n - 1), every = W < 520 ? 6 : 4;
+      s = '<svg width="' + W + '" height="' + H + '" role="img" aria-label="Trucks admitted per month, September 2024 to September 2026, steady around 35 to 40">';
+      [0, 10, 20, 30, 40, 50].forEach(function (t) { s += '<line class="gridline" x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + y(t) + '" y2="' + y(t) + '"/><text class="ax num" x="' + (m.l - 10) + '" y="' + (y(t) + 4) + '" text-anchor="end">' + t + '</text>'; });
+      var pts = vals.map(function (v, i) { return [x(i), y(v)]; }), full = pts.slice(0, n - 1);
+      s += '<path d="' + monotone(full) + '" fill="none" style="stroke:var(--ink)" stroke-width="2" stroke-linecap="round"/>';
+      s += '<path d="M' + pts[n - 2] + 'L' + pts[n - 1] + '" fill="none" style="stroke:var(--ink)" stroke-width="2" stroke-dasharray="2 5" stroke-linecap="round"/>';
+      s += '<circle cx="' + pts[n - 1][0] + '" cy="' + pts[n - 1][1] + '" r="4.5" style="fill:var(--green);stroke:var(--panel)" stroke-width="2"/>';
+      s += '<text class="ax num" x="' + (pts[n - 1][0] - 8) + '" y="' + (pts[n - 1][1] - 12) + '" text-anchor="end" style="fill:var(--green-t);font-weight:600">37 so far in Sep</text>';
+      vals.forEach(function (v, i) { if ((n - 1 - i) % every === 0) s += '<text class="ax" x="' + x(i) + '" y="' + (H - 8) + '" text-anchor="' + (i === n - 1 ? 'end' : 'middle') + '">' + month(i) + '</text>'; });
+      s += '<line id="g" y1="' + m.t + '" y2="' + (m.t + ih) + '" style="stroke:var(--line-2)" opacity="0"/><circle id="d" r="4" opacity="0" style="fill:var(--ink)"/>';
+      host.innerHTML = s + '</svg>';
+      var svg = host.firstChild, g = $('#g', host), dot = $('#d', host);
+      host.onmousemove = function (e) {
+        var r = svg.getBoundingClientRect(), i = Math.round((e.clientX - r.left - m.l) / step);
+        if (i < 0 || i >= n) { g.setAttribute('opacity', 0); dot.setAttribute('opacity', 0); return hideTip(); }
+        g.setAttribute('x1', x(i)); g.setAttribute('x2', x(i)); g.setAttribute('opacity', 1); dot.setAttribute('cx', x(i)); dot.setAttribute('cy', y(vals[i])); dot.setAttribute('opacity', 1);
+        showTip(month(i) + ': ' + vals[i] + ' trucks', r.left + x(i), r.top + y(vals[i]));
+      };
+      host.onmouseleave = function () { g.setAttribute('opacity', 0); dot.setAttribute('opacity', 0); hideTip(); };
+    } else {
+      var yrs = [['2024 (4 mo)', 1100], ['2025', 3900], ['2026 (9 mo)', 3050]], gw = iw / yrs.length, bw = Math.min(56, gw * 0.45), yy = function (v) { return m.t + ih - v / 5000 * ih; };
+      s = '<svg width="' + W + '" height="' + H + '" role="img" aria-label="Trucks admitted per year: 1,100 in 2024 (4 months), 3,900 in 2025, 3,050 in 2026 (9 months)">';
+      [0, 1000, 2000, 3000, 4000, 5000].forEach(function (t) { s += '<line class="gridline" x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + yy(t) + '" y2="' + yy(t) + '"/><text class="ax num" x="' + (m.l - 10) + '" y="' + (yy(t) + 4) + '" text-anchor="end">' + (t ? t / 1000 + 'k' : 0) + '</text>'; });
+      yrs.forEach(function (d, i) {
+        var cx = m.l + gw * i + gw / 2, top = yy(d[1]);
+        s += '<rect x="' + (cx - bw / 2) + '" y="' + top + '" width="' + bw + '" height="' + (m.t + ih - top) + '" rx="4" style="fill:' + (i === 1 ? 'var(--ink)' : 'var(--faint)') + '"/>';
+        s += '<text class="ax num" x="' + cx + '" y="' + (top - 8) + '" text-anchor="middle" style="fill:var(--ink);font-weight:600">' + d[1].toLocaleString('en-US') + '</text>';
+        s += '<text class="ax" x="' + cx + '" y="' + (H - 8) + '" text-anchor="middle">' + d[0] + '</text>';
+      });
+      host.innerHTML = s + '</svg>'; host.onmousemove = null; host.onmouseleave = null;
+    }
+  }
+  if (window.ResizeObserver) new ResizeObserver(function () { requestAnimationFrame(drawTrend); }).observe($('#trend'));
+
+  renderFilters(); renderRows(); renderDetail(); renderTabs();
+  show(location.hash === '#operations' ? 'operations' : 'billing');
+})();
+</script>

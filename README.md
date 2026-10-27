@@ -7,3 +7,7 @@ Open `index.html` in a browser, or use the live page. Switch screens with the pi
 ## Option B
 
 A second take that follows Minimals dashboard patterns more closely (left nav, plain cards, soft labels, timeline alerts). It lives at `option-b/` and on the live site at `/option-b/`.
+
+## Option C
+
+Icon rail, attention-first billing with a manifest list and detail panel, alerts in a slide-over, and a port-flow pipeline for operations. It lives at `option-c/` and on the live site at `/option-c/`.
